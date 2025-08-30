@@ -136,7 +136,7 @@ public class ShuntingYard {
         4. After loop, pop remaining operators to output
         5. Return output as string
         */
-        Map<Character, Integer> operators = new HashMap<>();
+        Map<Character, Integer> operators = new HashMap<>();//Mapa de precedencia
         operators.put('*', 4);
         operators.put('+', 3);
         operators.put('.', 2);
@@ -144,34 +144,46 @@ public class ShuntingYard {
         operators.put('(', 0);operators.put(')', 0);
 
         //variables auxiliares
-        Deque<Character> pila = new ArrayDeque<>();
-        String concats = insertConcatenationOperator(infixRegex);
         StringBuilder res = new StringBuilder();
-        int length = concats.length(), hierarchy;
+        Deque<Character> stack = new ArrayDeque<>();
+
+        String concats = insertConcatenationOperator(infixRegex);//Preprocesado con concatenacion
+        
+        int hierarchy;
         char charAct,popAct;
-        for (int i=0; i<length; i++) {
+        for (int i=0; i<concats.length(); i++) {
             charAct = concats.charAt(i);
-            if( isOperand(charAct) ){
-                res.append(charAct);
+            if( isOperand(charAct) ){//Operand
+                res.append( charAct );
                 continue;
             }
-            if( charAct=='('){
-                pila.push(charAct);
-            }else if( charAct==')'){
-                while( (!pila.isEmpty()) && ((popAct = pila.pop()) != '(') ){
+            if( charAct=='('){ //push ( to stack
+                stack.push(charAct);
+            }else if( charAct==')'){//pop until ( is found
+                while( (!stack.isEmpty()) && ((popAct = stack.pop()) != '(') ){
                     res.append( popAct );
             }   }
-            else{
+            else{//Operator
                 hierarchy = operators.get(charAct);
-                while( (!pila.isEmpty()) && (hierarchy<=operators.get(pila.peek()))){
-                    res.append( pila.pop() );
+                while( (!stack.isEmpty()) && (hierarchy<=operators.get(stack.peek()))){
+                    res.append( stack.pop() );
                 }
-                pila.push(charAct);
+                stack.push(charAct);
         }   }
         //concatenamos todo lo que reste de la pila de operadores.
-        while (!pila.isEmpty()) {
-            res.append( pila.pop() );
+        while (!stack.isEmpty()) {
+            res.append( stack.pop() );
         }
         return res.toString();
+    }
+
+    public static void main(String[] args) {
+        System.out.println("Prueba para la notacion posfija");
+        System.out.println("resultado: "+toPostfix("(a|b)*(c)+"));
+        System.out.println("resultado: "+toPostfix("(a|b)*(c)"));
+        System.out.println("resultado: "+toPostfix("abc*(a+b)"));
+        System.out.println("resultado: "+toPostfix("(a)(a)"));
+        System.out.println("resultado: "+toPostfix("((a|b|c)*d+)|e"));
+        System.out.println("resultado: "+toPostfix("(a|b)*abb(a|b)*"));
     }
 }
