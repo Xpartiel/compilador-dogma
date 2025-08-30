@@ -1,5 +1,11 @@
 package com.compiler.lexer.regex;
 
+import java.util.Map;
+import java.util.HashMap;
+
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 /**
  * Utility class for regular expression parsing using the Shunting Yard
  * algorithm.
@@ -65,7 +71,6 @@ public class ShuntingYard {
      * @return true if it is an operand, false otherwise.
      */
     private static boolean isOperand(char c) {
-        // TODO: Implement isOperand
         /*
         Pseudocode:
         Return true if c is not one of: '|', '*', '?', '+', '(', ')', '·'
@@ -85,6 +90,32 @@ public class ShuntingYard {
     }
 
     /**
+     * Auxiliary function that cleanly determines if a given character is to be
+     * considered a unary operation or not
+     * @param c - {@code char} to be analyzed
+     * @return - {@code true} if it fids any of the following characters:
+     * <ul>
+     *  <li>+</li>
+     *  <li>*</li>
+     *  <li>?</li>
+     * </ul>
+     * - {@code false} otherwise
+     */
+    public static boolean isUnary( char c ){
+        if ( isOperand(c) ){
+            return false;
+        }
+        switch (c) {
+            case '*':
+            case '+':
+            case '?':
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    /**
      * Converts an infix regular expression to postfix notation using the
      * Shunting Yard algorithm. This is useful for constructing NFAs from
      * regular expressions.
@@ -93,7 +124,6 @@ public class ShuntingYard {
      * @return Regular expression in postfix notation.
      */
     public static String toPostfix(String infixRegex) {
-        // TODO: Implement toPostfix
         /*
         Pseudocode:
         1. Define operator precedence map
@@ -105,7 +135,7 @@ public class ShuntingYard {
             - If operator: pop operators with higher/equal precedence, then push current operator
         4. After loop, pop remaining operators to output
         5. Return output as string
-         */
-        throw new UnsupportedOperationException("Not implemented");
+        */
+        return null;
     }
 }
