@@ -30,17 +30,31 @@ public class ShuntingYard {
      * @return Regular expression with explicit concatenation operators.
      */
     public static String insertConcatenationOperator(String regex) {
-        // TODO: Implement insertConcatenationOperator
         /*
             Pseudocode:
             For each character in regex:
                 - Append current character to output
                 - If not at end of string:
-                        - Check if current and next character form an implicit concatenation
-                        - If so, append '·' to output
+                    - Check if current and next character form an implicit concatenation
+                    - If so, append '·' to output
             Return output as string
          */
-        throw new UnsupportedOperationException("Not implemented");
+        StringBuilder res = new StringBuilder();
+        char charAct,charNext;
+        int largo = regex.length();
+        // For each character within the regular expression...
+        for( int i=0; i<largo ; i++ ){
+            charAct = regex.charAt(i);
+            res.append( charAct );//Add current character
+            if( (largo-1) <= i ){//End if its the last char
+                break;
+            }
+            charNext = regex.charAt(i+1);
+            if( isOperand(charAct) || isUnary(charAct) || charAct==')' ){
+                if( isOperand( charNext ) || charNext=='('){
+                    res.append(".");
+        }   }   }
+        return res.toString();
     }
 
     /**
