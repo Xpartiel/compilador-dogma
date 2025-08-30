@@ -176,14 +176,4 @@ public class ShuntingYard {
         }
         return res.toString();
     }
-
-    public static void main(String[] args) {
-        System.out.println("Prueba para la notacion posfija");
-        System.out.println("resultado: "+toPostfix("(a|b)*(c)+"));
-        System.out.println("resultado: "+toPostfix("(a|b)*(c)"));
-        System.out.println("resultado: "+toPostfix("abc*(a+b)"));
-        System.out.println("resultado: "+toPostfix("(a)(a)"));
-        System.out.println("resultado: "+toPostfix("((a|b|c)*d+)|e"));
-        System.out.println("resultado: "+toPostfix("(a|b)*abb(a|b)*"));
-    }
 }
