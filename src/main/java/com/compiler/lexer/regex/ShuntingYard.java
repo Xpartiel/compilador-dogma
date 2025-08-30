@@ -70,7 +70,18 @@ public class ShuntingYard {
         Pseudocode:
         Return true if c is not one of: '|', '*', '?', '+', '(', ')', '·'
          */
-        throw new UnsupportedOperationException("Not implemented");
+        switch (c) {
+            case '|':
+            case '*':
+            case '?':
+            case '+':
+            case '(':
+            case ')':
+            case '.':
+                return false;
+            default:
+                return true;
+        }
     }
 
     /**
