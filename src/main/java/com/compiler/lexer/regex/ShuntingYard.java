@@ -136,6 +136,42 @@ public class ShuntingYard {
         4. After loop, pop remaining operators to output
         5. Return output as string
         */
-        return null;
+        Map<Character, Integer> operators = new HashMap<>();
+        operators.put('*', 4);
+        operators.put('+', 3);
+        operators.put('.', 2);
+        operators.put('|', 1);
+        operators.put('(', 0);operators.put(')', 0);
+
+        //variables auxiliares
+        Deque<Character> pila = new ArrayDeque<>();
+        String concats = insertConcatenationOperator(infixRegex);
+        StringBuilder res = new StringBuilder();
+        int length = concats.length(), hierarchy;
+        char charAct,popAct;
+        for (int i=0; i<length; i++) {
+            charAct = concats.charAt(i);
+            if( isOperand(charAct) ){
+                res.append(charAct);
+                continue;
+            }
+            if( charAct=='('){
+                pila.push(charAct);
+            }else if( charAct==')'){
+                while( (!pila.isEmpty()) && ((popAct = pila.pop()) != '(') ){
+                    res.append( popAct );
+            }   }
+            else{
+                hierarchy = operators.get(charAct);
+                while( (!pila.isEmpty()) && (hierarchy<=operators.get(pila.peek()))){
+                    res.append( pila.pop() );
+                }
+                pila.push(charAct);
+        }   }
+        //concatenamos todo lo que reste de la pila de operadores.
+        while (!pila.isEmpty()) {
+            res.append( pila.pop() );
+        }
+        return res.toString();
     }
 }
