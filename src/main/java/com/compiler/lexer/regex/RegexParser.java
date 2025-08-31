@@ -1,5 +1,6 @@
 package com.compiler.lexer.regex;
 
+import java.util.List;
 import java.util.Stack;
 
 import com.compiler.lexer.nfa.NFA;
@@ -50,14 +51,40 @@ public class RegexParser {
 
     /**
      * Builds an NFA from a postfix regular expression.
-     *
+     * <p>
+     * Pseudocode: For each char in postfix, handle operators and operands using a stack
+     * </p>
      * @param postfixRegex The regular expression in postfix notation.
      * @return The constructed NFA.
      */
     private NFA buildNfaFromPostfix(String postfixRegex) {
-    // TODO: Implement buildNfaFromPostfix
-    // Pseudocode: For each char in postfix, handle operators and operands using a stack
-    throw new UnsupportedOperationException("Not implemented");
+        Stack<NFA> stack = new Stack<>();
+        char charAct;
+        int length = postfixRegex.length();
+        for (int i=0; i<length; i++) {
+            charAct = postfixRegex.charAt(i);
+            switch (charAct) {
+                case '+':
+                    handlePlus(stack);
+                    break;
+                case '*':
+                    handleKleeneStar(stack);
+                    break;
+                case '?':
+                    handleOptional(stack);
+                    break;
+                case '|':
+                    handleUnion(stack);
+                    break;
+                case '.':
+                    handleConcatenation(stack);
+                    break;
+                default:
+                    stack.push( createNfaForCharacter(charAct) );
+                    break;
+            }
+        }
+        return stack.pop();
     }
 
     /**
