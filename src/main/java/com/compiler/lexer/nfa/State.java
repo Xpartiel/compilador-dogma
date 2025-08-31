@@ -42,8 +42,8 @@ public class State {
      * The state is not final by default.
      */
     public State() {
-    // TODO: Implement constructor
-    throw new UnsupportedOperationException("Not implemented");
+        this.id = nextId;
+        ++nextId;
     }
 
     /**
