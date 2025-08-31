@@ -81,8 +81,20 @@ public class RegexParser {
      */
     private void handlePlus(Stack<NFA> stack) {
         NFA top = stack.pop();
-
         NFA res = new NFA( new State() , new State() );
+
+        // Create transition from new start to old start
+        res.getStartState().addTransition( new Transition(null, top.getStartState()) );
+        
+        // Create transition from old end to old start
+        top.getEndState().addTransition( new Transition(null, top.getStartState()) );
+        // Create transition from old end to new end
+        top.getEndState().addTransition( new Transition(null, res.getEndState()) );
+        // Update old end flag as not final anymore
+        top.getEndState().isFinal = false;
+        
+        // Push automata to stack
+        stack.push(res);
     }
     
     /**
@@ -119,7 +131,7 @@ public class RegexParser {
         // Create transition from left's old end state to right's old start state
         left.getEndState().addTransition( new Transition(null, right.getStartState()) );
 
-        // Push resulting automata into stack
+        // Push resulting automata to stack
         stack.push( new NFA( left.getStartState() , right.getEndState() ) );
     }
 
@@ -151,7 +163,7 @@ public class RegexParser {
         left.getEndState().addTransition( new Transition(null, nEndState) );
         right.getEndState().addTransition( new Transition(null, nEndState) );
 
-        // Push resulting automata
+        // Push resulting automata to stack
         stack.add( new NFA(nStartState , nEndState) );
     }
 
@@ -181,7 +193,7 @@ public class RegexParser {
         //Connect new start with old start
         nStartState.addTransition( new Transition(null, top.getStartState()) );
         
-        //Push resulting automata
+        //Push resulting automata to stack
         stack.push( new NFA( nStartState , nEndState) );
     }
 
