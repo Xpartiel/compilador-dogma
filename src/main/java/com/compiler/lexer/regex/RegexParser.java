@@ -130,8 +130,17 @@ public class RegexParser {
      * @return True if the character is an operand, false if it is an operator.
      */
     private boolean isOperand(char c) {
-    // TODO: Implement isOperand
-    // Pseudocode: Return true if c is not an operator
-    throw new UnsupportedOperationException("Not implemented");
+        switch (c) {
+            case '|':
+            case '*':
+            case '?':
+            case '+':
+            case '(':
+            case ')':
+            case '.':
+                return false;
+            default:
+                return true;
+        }
     }
 }
