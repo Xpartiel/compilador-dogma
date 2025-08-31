@@ -107,12 +107,34 @@ public class RegexParser {
     /**
      * Handles the union operator (|).
      * Pops two NFAs from the stack and creates a new NFA that accepts either.
+     * <p>
+     * Pseudocode: Pop two NFAs, create new start/end, add epsilon transitions for union
+     * </p>
      * @param stack The NFA stack.
      */
     private void handleUnion(Stack<NFA> stack) {
-    // TODO: Implement handleUnion
-    // Pseudocode: Pop two NFAs, create new start/end, add epsilon transitions for union
-    throw new UnsupportedOperationException("Not implemented");
+        NFA left = stack.pop();
+        NFA right = stack.pop();
+
+        // Create new States
+        State nStartState = new State();
+        State nEndState = new State();
+        nEndState.isFinal = true;
+
+        // Connect new start with old starts
+        nStartState.addTransition( new Transition(null, left.getStartState()) );
+        nStartState.addTransition( new Transition(null, right.getStartState()) );
+
+        // Remove final status to old ends
+        left.getEndState().isFinal = false;
+        right.getEndState().isFinal = false;
+
+        // Conect old ends with new end
+        left.getEndState().addTransition( new Transition(null, nEndState) );
+        right.getEndState().addTransition( new Transition(null, nEndState) );
+
+        // Push resulting automata
+        stack.add( new NFA(nStartState, nEndState) );
     }
 
     /**
@@ -126,15 +148,16 @@ public class RegexParser {
     private void handleKleeneStar(Stack<NFA> stack) {
         NFA top = stack.pop();
         State nStartState = new State();
+
         State nEndState = new State();
+        nEndState.isFinal = true;
 
         //Connect old end with old start
         top.getEndState().addTransition( new Transition(null, top.getStartState()) );
         //Connect old end with new end
         top.getEndState().addTransition( new Transition(null, nEndState ) );
-        //Update isFinal status
+        //Remove final status from old final
         top.getEndState().isFinal = false;
-        nEndState.isFinal = true;
 
         //Connect new start with new end
         nStartState.addTransition( new Transition(null, nEndState) );
