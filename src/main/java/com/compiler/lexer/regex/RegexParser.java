@@ -96,12 +96,22 @@ public class RegexParser {
     /**
      * Handles the concatenation operator (·).
      * Pops two NFAs from the stack and connects them in sequence.
+     * <p>
+     * Pseudocode: Pop two NFAs, connect end of first to start of second
+     * </p>
      * @param stack The NFA stack.
      */
     private void handleConcatenation(Stack<NFA> stack) {
-    // TODO: Implement handleConcatenation
-    // Pseudocode: Pop two NFAs, connect end of first to start of second
-    throw new UnsupportedOperationException("Not implemented");
+        NFA right = stack.pop();
+        NFA left = stack.pop();
+
+        // Remove final status to left's side end state
+        left.getEndState().isFinal = false;
+        // Create transition from left's old end state to right's old start state
+        left.getEndState().addTransition( new Transition(null, right.getStartState()) );
+
+        // Push resulting automata into stack
+        stack.push( new NFA( left.getStartState() , right.getEndState() ) );
     }
 
     /**
