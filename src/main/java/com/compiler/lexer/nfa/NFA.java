@@ -26,6 +26,7 @@ public class NFA {
     public NFA(State start, State end) {
         this.startState = start;
         this.endState = end;
+        this.endState.isFinal = true;
     }
 
     /**
