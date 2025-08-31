@@ -51,8 +51,7 @@ public class State {
      * @return true if this state is final, false otherwise
      */
     public boolean isFinal() {
-    // TODO: Implement isFinal
-    throw new UnsupportedOperationException("Not implemented");
+        return this.isFinal;
     }
 
     /**
