@@ -39,14 +39,14 @@ public class RegexParser {
 
     /**
      * Converts an infix regular expression to an NFA.
-     *
+     * <p>
+     * Pseudocode: Convert infix to postfix, then build NFA from postfix
+     * </p>
      * @param infixRegex The regular expression in infix notation.
      * @return The constructed NFA.
      */
     public NFA parse(String infixRegex) {
-    // TODO: Implement parse
-    // Pseudocode: Convert infix to postfix, then build NFA from postfix
-    throw new UnsupportedOperationException("Not implemented");
+        return buildNfaFromPostfix( ShuntingYard.toPostfix(infixRegex) );
     }
 
     /**
