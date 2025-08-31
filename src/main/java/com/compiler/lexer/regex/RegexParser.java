@@ -74,12 +74,15 @@ public class RegexParser {
     /**
      * Handles the '+' operator (one or more occurrences).
      * Pops an NFA from the stack and creates a new NFA that accepts one or more occurrences.
+     * <p>
+     * Pseudocode: Pop NFA, create new start/end, add transitions for one or more occurrence
+     * </p>
      * @param stack The NFA stack.
      */
     private void handlePlus(Stack<NFA> stack) {
-    // TODO: Implement handlePlus
-    // Pseudocode: Pop NFA, create new start/end, add transitions for one or more occurrence
-    throw new UnsupportedOperationException("Not implemented");
+        NFA top = stack.pop();
+
+        NFA res = new NFA( new State() , new State() );
     }
     
     /**
@@ -93,8 +96,6 @@ public class RegexParser {
     private NFA createNfaForCharacter(char c) {
         // Create new automata with 2 blank states
         NFA nfa = new NFA( new State() , new State() );
-        // Make proposed end state final
-        nfa.getEndState().isFinal = true;
         // Conect start and end states with a symbol transition
         nfa.getStartState().addTransition( new Transition(c, nfa.getEndState()) );
 
@@ -137,7 +138,6 @@ public class RegexParser {
         // Create new States
         State nStartState = new State();
         State nEndState = new State();
-        nEndState.isFinal = true;
 
         // Connect new start with old starts
         nStartState.addTransition( new Transition(null, left.getStartState()) );
@@ -152,7 +152,7 @@ public class RegexParser {
         right.getEndState().addTransition( new Transition(null, nEndState) );
 
         // Push resulting automata
-        stack.add( new NFA(nStartState, nEndState) );
+        stack.add( new NFA(nStartState , nEndState) );
     }
 
     /**
@@ -168,7 +168,6 @@ public class RegexParser {
         State nStartState = new State();
 
         State nEndState = new State();
-        nEndState.isFinal = true;
 
         //Connect old end with old start
         top.getEndState().addTransition( new Transition(null, top.getStartState()) );
