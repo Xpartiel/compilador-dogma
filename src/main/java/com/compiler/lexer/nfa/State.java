@@ -64,8 +64,7 @@ public class State {
         for (Transition transition: this.transitions) {
             if( transition.symbol == null ){
                 res.add( transition.toState );
-            }
-        }
+        }   }
         return res;
     }
 
