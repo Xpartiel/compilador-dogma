@@ -73,9 +73,13 @@ public class State {
      * @param symbol the symbol for the transition
      * @return a list of states reachable by the given symbol
      */
-    public List<State> getTransitions(char symbol) {
-    // TODO: Implement getTransitions
-    // Pseudocode: Iterate over transitions, if symbol matches, add to result list
-    throw new UnsupportedOperationException("Not implemented");
+    public List<State> getTransitions( char symbol ) {
+        List<State> res = new LinkedList<>();
+        for ( Transition transition : this.transitions ) {
+            if( transition.symbol != null && transition.symbol.charValue() == symbol ){
+                res.add(transition.toState);
+            }
+        }
+        return res;
     }
 }
