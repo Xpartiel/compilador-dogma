@@ -81,4 +81,16 @@ public class State {
         }   }
         return res;
     }
+
+    /**
+     * Auxiliary method for inserting new {@link Transition}s into already
+     * existing {@link State}s
+     * @param transition the {@link Transition} to be inserted.
+     * <p>
+     * This method doesn't have any mechanism to avoid duplicate {@link Transition}s
+     * </p>
+     */
+    public void addTransition( Transition transition ){
+        this.transitions.add(transition);
+    }
 }
