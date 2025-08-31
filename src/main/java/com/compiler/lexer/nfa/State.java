@@ -78,8 +78,7 @@ public class State {
         for ( Transition transition : this.transitions ) {
             if( transition.symbol != null && transition.symbol.charValue() == symbol ){
                 res.add(transition.toState);
-            }
-        }
+        }   }
         return res;
     }
 }
