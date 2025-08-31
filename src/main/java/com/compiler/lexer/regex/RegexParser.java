@@ -84,13 +84,21 @@ public class RegexParser {
     
     /**
      * Creates an NFA for a single character.
+     * <p>
+     * Pseudocode: Create start/end state, add transition for character
+     * </p>
      * @param c The character to create an NFA for.
      * @return The constructed NFA.
      */
     private NFA createNfaForCharacter(char c) {
-    // TODO: Implement createNfaForCharacter
-    // Pseudocode: Create start/end state, add transition for character
-    throw new UnsupportedOperationException("Not implemented");
+        // Create new automata with 2 blank states
+        NFA nfa = new NFA( new State() , new State() );
+        // Make proposed end state final
+        nfa.getEndState().isFinal = true;
+        // Conect start and end states with a symbol transition
+        nfa.getStartState().addTransition( new Transition(c, nfa.getEndState()) );
+
+        return nfa;
     }
 
     /**
