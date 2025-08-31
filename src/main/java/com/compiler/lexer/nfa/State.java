@@ -1,5 +1,6 @@
 package com.compiler.lexer.nfa;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -47,8 +48,8 @@ public class State {
     }
 
     /**
-     * Checks if this state is a final (accepting) state.
-     * @return true if this state is final, false otherwise
+     * Checks if this {@link State} is a final (accepting) state.
+     * @return {@code true} if this state is final, {@code false} otherwise
      */
     public boolean isFinal() {
         return this.isFinal;
@@ -59,9 +60,13 @@ public class State {
      * @return a list of states reachable by epsilon transitions
      */
     public List<State> getEpsilonTransitions() {
-    // TODO: Implement getEpsilonTransitions
-    // Pseudocode: Iterate over transitions, if symbol is null, add to result list
-    throw new UnsupportedOperationException("Not implemented");
+        List<State> res = new LinkedList<>();
+        for (Transition transition: this.transitions) {
+            if( transition.symbol == null ){
+                res.add( transition.toState );
+            }
+        }
+        return res;
     }
 
     /**
