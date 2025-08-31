@@ -33,7 +33,14 @@ public class NFA {
      * @return the start state
      */
     public State getStartState() {
-        // TODO: Implement getStartState
-        throw new UnsupportedOperationException("Not implemented");
+        return this.startState;
+    }
+
+    /**
+     * Returns the last (end) state of the NFA.
+     * @return the end state
+     */
+    public State getEndState(){
+        return this.endState;
     }
 }
