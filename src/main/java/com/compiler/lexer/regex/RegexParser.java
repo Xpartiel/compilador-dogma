@@ -3,6 +3,8 @@ package com.compiler.lexer.regex;
 import java.util.Stack;
 
 import com.compiler.lexer.nfa.NFA;
+import com.compiler.lexer.nfa.State;
+import com.compiler.lexer.nfa.Transition;
 
 /**
  * RegexParser
@@ -116,12 +118,31 @@ public class RegexParser {
     /**
      * Handles the Kleene star operator (*).
      * Pops an NFA from the stack and creates a new NFA that accepts zero or more repetitions.
+     * <p>
+     * Pseudocode: Pop NFA, create new start/end, add transitions for zero or more repetitions
+     * </p>
      * @param stack The NFA stack.
      */
     private void handleKleeneStar(Stack<NFA> stack) {
-    // TODO: Implement handleKleeneStar
-    // Pseudocode: Pop NFA, create new start/end, add transitions for zero or more repetitions
-    throw new UnsupportedOperationException("Not implemented");
+        NFA top = stack.pop();
+        State nStartState = new State();
+        State nEndState = new State();
+
+        //Connect old end with old start
+        top.getEndState().addTransition( new Transition(null, top.getStartState()) );
+        //Connect old end with new end
+        top.getEndState().addTransition( new Transition(null, nEndState ) );
+        //Update isFinal status
+        top.getEndState().isFinal = false;
+        nEndState.isFinal = true;
+
+        //Connect new start with new end
+        nStartState.addTransition( new Transition(null, nEndState) );
+        //Connect new start with old start
+        nStartState.addTransition( new Transition(null, top.getStartState()) );
+        
+        //Push resulting automata
+        stack.push( new NFA( nStartState , nEndState) );
     }
 
     /**
