@@ -63,12 +63,26 @@ public class RegexParser {
     /**
      * Handles the '?' operator (zero or one occurrence).
      * Pops an NFA from the stack and creates a new NFA that accepts zero or one occurrence.
+     * <p>
+     * Pseudocode: Pop NFA, create new start/end, add epsilon transitions for zero/one occurence
+     * </p>
      * @param stack The NFA stack.
      */
     private void handleOptional(Stack<NFA> stack) {
-    // TODO: Implement handleOptional
-    // Pseudocode: Pop NFA, create new start/end, add epsilon transitions for zero/one occurrence
-    throw new UnsupportedOperationException("Not implemented");
+        NFA top = stack.pop();
+        NFA nfa = new NFA( new State(), new State() );
+
+        // Connect new start with old start
+        nfa.getStartState().addTransition( new Transition(null, top.getStartState()) );
+        // Connect old end with new end
+        top.getEndState().addTransition( new Transition(null, nfa.getEndState()) );
+        // Directly connect new start and end 
+        nfa.getStartState().addTransition( new Transition(null, nfa.getEndState()) );
+        // Update old end flag as not final anymore
+        top.getEndState().isFinal = false;
+
+        // Push resulting automata to stack
+        stack.push(nfa);
     }
 
     /**
@@ -93,7 +107,7 @@ public class RegexParser {
         // Update old end flag as not final anymore
         top.getEndState().isFinal = false;
         
-        // Push automata to stack
+        // Push resulting automata to stack
         stack.push(res);
     }
     
