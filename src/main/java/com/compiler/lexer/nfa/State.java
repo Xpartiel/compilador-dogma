@@ -45,6 +45,8 @@ public class State {
     public State() {
         this.id = nextId;
         ++nextId;
+
+        this.transitions = new LinkedList<>();
     }
 
     /**
@@ -92,5 +94,6 @@ public class State {
      */
     public void addTransition( Transition transition ){
         this.transitions.add(transition);
+ 
     }
 }
