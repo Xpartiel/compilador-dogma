@@ -57,6 +57,34 @@ public class NfaSimulator {
          3. After input, if any state in currentStates is final, return true
          4. Otherwise, return false
         */
+        //conjunto auxiliar.
+        Set<State> currentStates = new HashSet<State>();
+        //agrego la cerradura epsilon del estado inicial al conjunto.
+        addEpsilonClosure( nfa.getStartState() , currentStates );
+        int length = input.length();
+        char charAct;
+        Set<State> nextStates;
+
+        // For each charecter in input...
+        for (int i=0; i<length; i++){
+            charAct = input.charAt(i);
+            nextStates = new HashSet<>();
+            // For each state in current states...
+            for ( State state : currentStates ){
+                // For each transition...
+                for ( Transition transition : state.transitions ) {
+                    if( transition.symbol != null && transition.symbol.charValue()==charAct ){
+                        addEpsilonClosure( transition.toState , nextStates );
+                    }
+                }
+            }
+            currentStates = nextStates;
+        }
+        for (State state : currentStates) {
+            if( state.isFinal() ){
+                return true;
+            }
+        }
         return false;
     }
 
