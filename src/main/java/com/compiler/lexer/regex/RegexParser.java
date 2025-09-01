@@ -1,6 +1,5 @@
 package com.compiler.lexer.regex;
 
-import java.util.List;
 import java.util.Stack;
 
 import com.compiler.lexer.nfa.NFA;
@@ -82,8 +81,7 @@ public class RegexParser {
                 default:
                     stack.push( createNfaForCharacter(charAct) );
                     break;
-            }
-        }
+        }   }
         return stack.pop();
     }
 
@@ -167,7 +165,7 @@ public class RegexParser {
         NFA right = stack.pop();
         NFA left = stack.pop();
 
-        // Remove final status to left's side end state
+        // Update left's end flag as not final anymore
         left.getEndState().isFinal = false;
         // Create transition from left's old end state to right's old start state
         left.getEndState().addTransition( new Transition(null, right.getStartState()) );
@@ -196,7 +194,7 @@ public class RegexParser {
         nStartState.addTransition( new Transition(null, left.getStartState()) );
         nStartState.addTransition( new Transition(null, right.getStartState()) );
 
-        // Remove final status to old ends
+        // Update old end flags as not final anymore
         left.getEndState().isFinal = false;
         right.getEndState().isFinal = false;
 
@@ -222,19 +220,19 @@ public class RegexParser {
 
         State nEndState = new State();
 
-        //Connect old end with old start
+        // Connect old end with old start
         top.getEndState().addTransition( new Transition(null, top.getStartState()) );
-        //Connect old end with new end
+        // Connect old end with new end
         top.getEndState().addTransition( new Transition(null, nEndState ) );
-        //Remove final status from old final
+        // Update old end flag as not final anymore
         top.getEndState().isFinal = false;
 
-        //Connect new start with new end
+        // Connect new start with new end
         nStartState.addTransition( new Transition(null, nEndState) );
-        //Connect new start with old start
+        // Connect new start with old start
         nStartState.addTransition( new Transition(null, top.getStartState()) );
         
-        //Push resulting automata to stack
+        // Push resulting automata to stack
         stack.push( new NFA( nStartState , nEndState) );
     }
 
@@ -255,6 +253,4 @@ public class RegexParser {
                 return false;
             default:
                 return true;
-        }
-    }
-}
+}   }   }
