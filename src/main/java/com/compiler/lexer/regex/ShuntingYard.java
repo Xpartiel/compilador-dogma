@@ -86,8 +86,7 @@ public class ShuntingYard {
                 return false;
             default:
                 return true;
-        }
-    }
+    }   }
 
     /**
      * Auxiliary function that cleanly determines if a given character is to be
@@ -112,8 +111,7 @@ public class ShuntingYard {
                 return true;
             default:
                 return false;
-        }
-    }
+    }   }
 
     /**
      * Converts an infix regular expression to postfix notation using the
@@ -137,6 +135,7 @@ public class ShuntingYard {
         5. Return output as string
         */
         Map<Character, Integer> operators = new HashMap<>();//Mapa de precedencia
+        operators.put('?', 5);
         operators.put('*', 4);
         operators.put('+', 3);
         operators.put('.', 2);
@@ -162,8 +161,7 @@ public class ShuntingYard {
             }else if( charAct==')'){//pop until ( is found
                 while( (!stack.isEmpty()) && ((popAct = stack.pop()) != '(') ){
                     res.append( popAct );
-            }   }
-            else{//Operator
+            }   }else{//Operator
                 hierarchy = operators.get(charAct);
                 while( (!stack.isEmpty()) && (hierarchy<=operators.get(stack.peek()))){
                     res.append( stack.pop() );
@@ -175,5 +173,4 @@ public class ShuntingYard {
             res.append( stack.pop() );
         }
         return res.toString();
-    }
-}
+}   }
