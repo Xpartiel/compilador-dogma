@@ -111,8 +111,10 @@ public class DfaState {
      * @return The destination DFA state for the transition, or null if there is no transition for the given symbol.
      */
     public DfaState getTransition(char symbol) {
-    // TODO: Implement getTransition
-    throw new UnsupportedOperationException("Not implemented");
+        if( !this.getTransitions().containsKey( symbol ) ){
+            return null;
+        }
+        return this.getTransitions().get(symbol);
     }
 
     /**
