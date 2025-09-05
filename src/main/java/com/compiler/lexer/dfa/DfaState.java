@@ -86,8 +86,7 @@ public class DfaState {
      */
     @Override
     public String toString() {
-    // TODO: Implement toString
-    throw new UnsupportedOperationException("Not implemented");
+        return this.id+" "+this.isFinal;
     }
 
     /**
