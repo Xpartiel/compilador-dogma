@@ -119,7 +119,6 @@ public class DfaState {
      * @return The set of NFA states.
      */
     public Set<State> getName() {
-    // TODO: Implement getName
-    throw new UnsupportedOperationException("Not implemented");
+        return this.nfaStates;
     }
 }
