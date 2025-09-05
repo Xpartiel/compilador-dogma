@@ -94,8 +94,7 @@ public class DfaState {
      * @param isFinal True if this state is a final state, false otherwise.
      */
     public void setFinal(boolean isFinal) {
-    // TODO: Implement setFinal
-    throw new UnsupportedOperationException("Not implemented");
+        this.isFinal = isFinal;
     }
 
     /**
@@ -103,8 +102,7 @@ public class DfaState {
      * @return True if this state is a final state, false otherwise.
      */
     public boolean isFinal() {
-    // TODO: Implement isFinal
-    throw new UnsupportedOperationException("Not implemented");
+        return this.isFinal;
     }
 
     /**
