@@ -86,7 +86,7 @@ public class DfaState {
      */
     @Override
     public String toString() {
-        return this.id+" "+this.isFinal;
+        return this.id+" "+this.isFinal();
     }
 
     /**
