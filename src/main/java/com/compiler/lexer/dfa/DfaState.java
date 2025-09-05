@@ -54,8 +54,7 @@ public class DfaState {
      * @param toState The destination DFA state.
      */
     public void addTransition(Character symbol, DfaState toState) {
-    // TODO: Implement addTransition
-    throw new UnsupportedOperationException("Not implemented");
+            this.transitions.put(symbol, toState);
     }
 
     /**
