@@ -1,6 +1,7 @@
 package com.compiler.lexer.dfa;
 
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
 
 import com.compiler.lexer.nfa.State;
@@ -44,8 +45,9 @@ public class DfaState {
      * @param nfaStates The set of NFA states that this DFA state represents.
      */
     public DfaState(Set<State> nfaStates) {
-    // TODO: Implement constructor
-    throw new UnsupportedOperationException("Not implemented");
+        this.nfaStates = nfaStates;
+        this.id = nextId++;
+        this.transitions = new HashMap<Character,DfaState>();
     }
 
     /**
