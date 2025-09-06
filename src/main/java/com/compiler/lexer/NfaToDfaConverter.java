@@ -3,6 +3,7 @@ package com.compiler.lexer;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 
@@ -38,8 +39,7 @@ public class NfaToDfaConverter {
 	 * @return The resulting DFA
 	 */
 	public static DFA convertNfaToDfa(NFA nfa, Set<Character> alphabet) {
-		// TODO: Implement convertNfaToDfa
-		//Queue<DfaState> queue = new LinkedList<>();
+		
 		/*
 		 Pseudocode:
 		 1. Create initial DFA state from epsilon-closure of NFA start state
@@ -51,7 +51,63 @@ public class NfaToDfaConverter {
 		 3. Mark DFA states as final if any NFA state in their set is final
 		 4. Return DFA with start state and all DFA states
 		*/
-		throw new UnsupportedOperationException("Not implemented");
+
+		//Auxiliar set.
+		Set<State> auxiliarInitial = new HashSet<>();
+		auxiliarInitial.add(nfa.startState);
+
+
+		//Auxiliar queue
+		List<DfaState> marked = new LinkedList<>();
+		Queue<DfaState> unmarked = new LinkedList<>();
+		
+		//step 1
+		//creating DFA state.
+		DfaState initial = new DfaState(epsilonClosure(auxiliarInitial));
+
+		unmarked.add(initial);
+
+		//step 2.
+		while (!unmarked.isEmpty()){
+
+			//adding new marked state
+			marked.add(initial);
+
+			//getting actual Dfastate
+			DfaState current = unmarked.poll();
+
+			//step 2.1
+			for (Character character : alphabet){
+
+				//step 2.2
+				//I need to obtain the epsilon closure of move with character given by the alphabet.
+				Set<State> move_set = epsilonClosure(move(current.nfaStates, character));
+				
+				//step 2.3
+				//I need to check if it is a new state.
+				DfaState checking_state=findDfaState(marked, move_set);
+				if (checking_state==null){
+					//if it is, create the new DfaState
+					DfaState new_DfaState=new DfaState(move_set);
+					
+					//Adding the new transition from current state to newDfaState.
+					current.addTransition(character, new_DfaState);
+
+					//Adding the new state to unmarked.
+					unmarked.add(new_DfaState);
+
+
+				}else{
+					//si ya existe un estado con el mismo set nfa, solo falta añadir la transicion.
+					//if already exist a Dfastate with nfaState set then only add the transition.
+					current.addTransition(character, checking_state);
+				}
+			}
+		}
+
+		//necesito crear el nuevo DFA.
+		DFA new_Dfa = new DFA(initial, marked);
+		return new_Dfa;
 	}
 
 	/**
@@ -156,3 +212,5 @@ public class NfaToDfaConverter {
 		return null;
 	}
 }
+
+//nos falta verificar si los estados finales se estan transmitiendo a los dfa.

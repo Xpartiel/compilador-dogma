@@ -49,6 +49,14 @@ public class DfaState {
         this.nfaStates = nfaStates;
         this.id = nextId++;
         this.transitions = new HashMap<Character,DfaState>();
+        this.isFinal=false;     //is false by default
+        //I need to check if someone in nfa states is an acceptation state.
+        for (State state : nfaStates) {
+            if (state.isFinal){
+                this.isFinal=true;
+                break;
+            }
+        }
     }
 
     /**
