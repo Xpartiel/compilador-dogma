@@ -83,7 +83,7 @@ public class NfaToDfaConverter {
 
 		//step 3.
 		while (!stack.empty()){
-			
+
 			State state = stack.pop();
 	
 			//Auxiliar variable, contains all states of epsilon transitions.
@@ -128,13 +128,20 @@ public class NfaToDfaConverter {
 	 * @return The matching DFA state, or null if not found.
 	 */
 	private static DfaState findDfaState(List<DfaState> dfaStates, Set<State> targetNfaStates) {
-	   // TODO: Implement findDfaState
 	   /*
 	    Pseudocode:
 	    1. For each DFA state in list:
 		    - If its NFA state set equals target set, return DFA state
 	    2. If not found, return null
 	   */
-	   throw new UnsupportedOperationException("Not implemented");
+	  	
+	   //step 1
+		for (DfaState state : dfaStates){
+			//step 2
+			if (state.getName().equals(targetNfaStates)) {
+				return state;
+			}
+		}
+		return null;
 	}
 }
