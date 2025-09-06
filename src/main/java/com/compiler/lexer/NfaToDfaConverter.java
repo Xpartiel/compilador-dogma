@@ -1,7 +1,10 @@
 package com.compiler.lexer;
 
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.Stack;
 
 import com.compiler.lexer.dfa.DFA;
 import com.compiler.lexer.dfa.DfaState;
@@ -35,6 +38,7 @@ public class NfaToDfaConverter {
 	 */
 	public static DFA convertNfaToDfa(NFA nfa, Set<Character> alphabet) {
 		// TODO: Implement convertNfaToDfa
+		//Queue<DfaState> queue = new LinkedList<>();
 		/*
 		 Pseudocode:
 		 1. Create initial DFA state from epsilon-closure of NFA start state
@@ -57,7 +61,6 @@ public class NfaToDfaConverter {
 	 * @return The epsilon-closure of the input states.
 	 */
 	private static Set<State> epsilonClosure(Set<State> states) {
-	// TODO: Implement epsilonClosure
 	/*
 	 Pseudocode:
 	 1. Initialize closure with input states
@@ -65,7 +68,37 @@ public class NfaToDfaConverter {
 	 3. For each state, add all reachable states via epsilon transitions
 	 4. Return closure set
 	*/
-	throw new UnsupportedOperationException("Not implemented");
+		//I need a Auxiliar set for the return.
+		Set<State> res = new HashSet<>();
+		
+		//I need a Auxiliar stack for processing states.
+		Stack<State> stack = new Stack<>();
+		
+		//step 1.
+		for (State state : states){
+			res.add(state);
+			//step 2.
+			stack.push(state);
+		}
+
+		//step 3.
+		while (!stack.empty()){
+			
+			State state = stack.pop();
+	
+			//Auxiliar variable, contains all states of epsilon transitions.
+			List<State> list_epsilon= state.getEpsilonTransitions();
+			
+			//for every epsilon transition, add EndState´s transition to the stack.
+			for (State auxState: list_epsilon){
+				stack.push(auxState);
+			}
+			res.addAll(list_epsilon);
+		}
+
+		//step 4.
+		return res;
+
 	}
 
 	/**
