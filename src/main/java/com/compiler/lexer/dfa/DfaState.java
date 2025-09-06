@@ -1,6 +1,7 @@
 package com.compiler.lexer.dfa;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -66,7 +67,7 @@ public class DfaState {
      */
     @Override
     public boolean equals(Object obj) {
-        
+
         if (obj instanceof DfaState &&  this.nfaStates.equals(((DfaState)obj).nfaStates)){
             return true;
         }
@@ -79,8 +80,7 @@ public class DfaState {
      */
     @Override
     public int hashCode() {
-    // TODO: Implement hashCode
-    throw new UnsupportedOperationException("Not implemented");
+        return  Objects.hash(this.nfaStates);
     }
     
     /**
@@ -89,7 +89,7 @@ public class DfaState {
      */
     @Override
     public String toString() {
-        return this.id+" "+this.isFinal();
+        return this.id+" "+"final?: "+this.isFinal();
     }
 
     /**
