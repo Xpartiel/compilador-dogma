@@ -10,6 +10,7 @@ import com.compiler.lexer.dfa.DFA;
 import com.compiler.lexer.dfa.DfaState;
 import com.compiler.lexer.nfa.NFA;
 import com.compiler.lexer.nfa.State;
+import com.compiler.lexer.nfa.Transition;
 
 /**
  * NfaToDfaConverter
@@ -109,7 +110,6 @@ public class NfaToDfaConverter {
 	 * @return The set of reachable states.
 	 */
 	private static Set<State> move(Set<State> states, char symbol) {
-		// TODO: Implement move
 		/*
 		 Pseudocode:
 		 1. For each state in input set:
@@ -117,7 +117,18 @@ public class NfaToDfaConverter {
 				  - Add destination state to result set
 		 2. Return result set
 		*/
-		throw new UnsupportedOperationException("Not implemented");
+
+		//Auxiliar Set.
+		Set<State> res = new HashSet<>();
+
+		//step 1
+		for (State state : states){
+			for (State symbol_state : state.getTransitions(symbol)){
+				res.add(symbol_state);				
+			}
+		}
+
+		return res;
 	}
 
 	/**
