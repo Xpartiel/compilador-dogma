@@ -19,9 +19,9 @@ public class DfaState {
      * @return Map of input symbols to destination DFA states.
      */
     public Map<Character, DfaState> getTransitions() {
-        // TODO: Implement getTransitions
-        throw new UnsupportedOperationException("Not implemented");
+        return this.transitions;
     }
+    
     private static int nextId = 0;
     /**
      * Unique identifier for this DFA state.
@@ -66,8 +66,11 @@ public class DfaState {
      */
     @Override
     public boolean equals(Object obj) {
-    // TODO: Implement equals
-    throw new UnsupportedOperationException("Not implemented");
+        
+        if (obj instanceof DfaState &&  this.nfaStates.equals(((DfaState)obj).nfaStates)){
+            return true;
+        }
+        return false;
     }
 
     /**
