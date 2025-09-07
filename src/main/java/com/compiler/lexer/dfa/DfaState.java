@@ -76,7 +76,7 @@ public class DfaState {
     @Override
     public boolean equals(Object obj) {
 
-        if (obj instanceof DfaState &&  this.nfaStates.equals(((DfaState)obj).nfaStates)){
+        if (obj instanceof DfaState && this.nfaStates.equals(((DfaState)obj).nfaStates)){
             return true;
         }
         return false;
