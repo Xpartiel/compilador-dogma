@@ -149,7 +149,6 @@ public class NfaToDfaConverter {
 				}
 				
 			}
-			//res.addAll(list_epsilon);
 		}
 
 		//step 4.
@@ -211,5 +210,3 @@ public class NfaToDfaConverter {
 		return null;
 	}
 }
-
-//nos falta verificar si los estados finales se estan transmitiendo a los dfa.
