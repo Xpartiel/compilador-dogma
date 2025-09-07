@@ -109,32 +109,15 @@ public class State {
     @Override
     public boolean equals(Object obj){
         //case is instance of State
-        if (obj instanceof State){
-            State new_State=(State)obj;
-            
-            //case id
-            if (this.id == new_State.id){
+        if (this == obj) return true;
+        if (!(obj instanceof State)) return false;
+        State other = (State) obj;
+        return this.id == other.id && this.isFinal == other.isFinal;
+    }
 
-                //case final
-                if (this.isFinal == new_State.isFinal){
-
-                    //case transitions.
-                    //same size.
-                    if (this.transitions.size()==new_State.transitions.size()){
-                     //for each to check all transitions.
-                        for(Transition trans:this.transitions){
-                            if(!new_State.transitions.contains(trans)){
-                                return false;
-                            }
-                        }
-                        //after check all elements
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(id);
     }
 
     /**
