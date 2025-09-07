@@ -96,4 +96,60 @@ public class State {
         this.transitions.add(transition);
  
     }
+
+    /**
+     * Auxiliar method to check equality.
+     * checks if @param obj is a State.
+     * checks if the id´s @param obj is the same.
+     * checks if both are final or not.
+     * checks if they have the same transitions.
+     * @param obj the element to compare.
+     * @return {@code True} if they are equal, <code> false </code> in any other case.
+     */
+    @Override
+    public boolean equals(Object obj){
+        //case is instance of State
+        if (this == obj) return true;
+        if (!(obj instanceof State)) return false;
+        State other = (State) obj;
+        return this.id == other.id && this.isFinal == other.isFinal;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(id);
+    }
+
+    /**
+     * Auxiliary method to check if two States are equivalent.
+     * @param obj the object to compare.
+     * checks if @param obj is a State.
+     * checks if both are final or not.
+     * checks if they have the same transitions.
+     * @return {@code True} if they are equivlalent, <code> false </code> in any other case.
+     */
+    public boolean equivalent(Object obj){
+        //case is instance of State
+        if (obj instanceof State){
+            State new_State=(State)obj;
+            //case final
+            if (this.isFinal == new_State.isFinal){
+
+            //case transitions.
+            //same size.
+                if (this.transitions.size()==new_State.transitions.size()){
+                //for each to check all transitions.
+                    for(Transition trans:this.transitions){
+                        if(!new_State.transitions.contains(trans)){
+                            return false;
+                        }
+                    }
+                        //after check all elements
+                        return true;
+                }
+            }
+            
+        }
+        return false;
+    }
 }
