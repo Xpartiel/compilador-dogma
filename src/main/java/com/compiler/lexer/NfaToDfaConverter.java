@@ -55,59 +55,54 @@ public class NfaToDfaConverter {
 		//Auxiliar set.
 		Set<State> auxiliarInitial = new HashSet<>();
 		auxiliarInitial.add(nfa.startState);
-
-
-		//Auxiliar queue
+		
 		List<DfaState> marked = new LinkedList<>();
-		Queue<DfaState> unmarked = new LinkedList<>();
+		List<DfaState> unmarked = new LinkedList<>();
+		DfaState current,checking_state, new_DfaState;
+		Set<State> move_set;
 		
 		//step 1
 		//creating DFA state.
 		DfaState initial = new DfaState(epsilonClosure(auxiliarInitial));
-
 		unmarked.add(initial);
 
 		//step 2.
 		while (!unmarked.isEmpty()){
 
-			//adding new marked state
-			marked.add(initial);
+			//getting actual DfaState
+			current = unmarked.remove(0);
 
-			//getting actual Dfastate
-			DfaState current = unmarked.poll();
+			//adding new marked state
+			marked.add(current);
 
 			//step 2.1
 			for (Character character : alphabet){
 
 				//step 2.2
 				//I need to obtain the epsilon closure of move with character given by the alphabet.
-				Set<State> move_set = epsilonClosure(move(current.nfaStates, character));
+				move_set = epsilonClosure(move(current.nfaStates, character));
 				
 				//step 2.3
 				//I need to check if it is a new state.
-				DfaState checking_state=findDfaState(marked, move_set);
+				checking_state=findDfaState(marked, move_set);
+
 				if (checking_state==null){
 					//if it is, create the new DfaState
-					DfaState new_DfaState=new DfaState(move_set);
+					new_DfaState=new DfaState(move_set);
 					
 					//Adding the new transition from current state to newDfaState.
 					current.addTransition(character, new_DfaState);
 
 					//Adding the new state to unmarked.
 					unmarked.add(new_DfaState);
-
-
 				}else{
-					//si ya existe un estado con el mismo set nfa, solo falta añadir la transicion.
-					//if already exist a Dfastate with nfaState set then only add the transition.
+					// A DfaState already exists with the same nfaState set. Add transition.
 					current.addTransition(character, checking_state);
 				}
 			}
 		}
-
-		//necesito crear el nuevo DFA.
-		DFA new_Dfa = new DFA(initial, marked);
-		return new_Dfa;
+		// return resulting DFA
+		return new DFA(initial, marked);
 	}
 
 	/**
@@ -144,13 +139,17 @@ public class NfaToDfaConverter {
 			State state = stack.pop();
 	
 			//Auxiliar variable, contains all states of epsilon transitions.
-			List<State> list_epsilon= state.getEpsilonTransitions();
+			List<State> list_epsilon = state.getEpsilonTransitions();
 			
 			//for every epsilon transition, add EndState´s transition to the stack.
 			for (State auxState: list_epsilon){
-				stack.push(auxState);
+				if( !res.contains(auxState) ){
+					stack.push(auxState);
+					res.add(auxState);
+				}
+				
 			}
-			res.addAll(list_epsilon);
+			//res.addAll(list_epsilon);
 		}
 
 		//step 4.
@@ -180,7 +179,7 @@ public class NfaToDfaConverter {
 		//step 1
 		for (State state : states){
 			for (State symbol_state : state.getTransitions(symbol)){
-				res.add(symbol_state);				
+				res.add(symbol_state);
 			}
 		}
 
