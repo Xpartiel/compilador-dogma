@@ -18,6 +18,7 @@ package com.compiler.lexer;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,20 +67,69 @@ public class DfaMinimizer {
     /**
      * Groups equivalent states into partitions using union-find.
      *
+     * PSEUDOCODE
+     * 
+     * 1. Initialize each state as its own parent
+     * 2. For each pair not marked as distinguishable, union the states
+     * 3. Group states by their root parent
+     * 4. Return list of partitions
+     * 
      * @param allStates List of all DFA states.
      * @param table Table indicating which pairs are distinguishable.
      * @return List of partitions, each containing equivalent states.
      */
     private static List<Set<DfaState>> createPartitions(List<DfaState> allStates, Map<Pair, Boolean> table) {
-    // TODO: Implement createPartitions
-    /*
-     Pseudocode:
-     1. Initialize each state as its own parent
-     2. For each pair not marked as distinguishable, union the states
-     3. Group states by their root parent
-     4. Return list of partitions
-    */  
-        throw new UnsupportedOperationException("Not implemented");
+        List<Set<DfaState>> res = new LinkedList<>();
+        Map<DfaState,DfaState> parent = new HashMap<>();
+
+        /* Step 1 */
+        for (DfaState state : allStates ) {
+            parent.put(state, state);
+        }
+
+        /* Step 2 */
+        for ( Pair par : table.keySet() ) {
+            if( !table.get(par) ){
+                union(parent, par.s1, par.s2);
+            }
+        }
+
+        /* Step 3 */
+        DfaState tempRoot;
+        HashSet<DfaState> tempTree;
+        boolean foundTree;
+
+        // For each state
+        for( DfaState state1 : allStates ) {
+            // Consider its root
+            tempRoot = find(parent, state1);
+            // Asume its set/tree doesn't exist
+            foundTree = false;
+            // For each set/tree in the known forest...
+            for( Set<DfaState> tree : res ){
+                // If the representative root is found
+                if( tree.contains(tempRoot) ){
+                    // Add current state
+                    tree.add(state1);
+                    // Indicate its set/tree has been found
+                    foundTree = true;
+                    break;
+                }
+            }
+            // No set/tree was found with the expected root
+            if( !foundTree ){
+                // It shall be created
+                tempTree = new HashSet<>();
+                // Its first element shall be its root
+                tempTree.add( tempRoot );
+                // Insert current state
+                tempTree.add( state1 );
+                // The set/tree shall be included into the forest
+                res.add( tempTree );
+            }
+        }
+
+        return res;
     }
 
     /**
