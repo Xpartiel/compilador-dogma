@@ -16,8 +16,11 @@
  */
 package com.compiler.lexer;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import com.compiler.lexer.dfa.DFA;
@@ -75,8 +78,8 @@ public class DfaMinimizer {
      2. For each pair not marked as distinguishable, union the states
      3. Group states by their root parent
      4. Return list of partitions
-    */
-    throw new UnsupportedOperationException("Not implemented");
+    */  
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     /**
@@ -88,14 +91,24 @@ public class DfaMinimizer {
      * @return Root parent of the state.
      */
     private static DfaState find(Map<DfaState, DfaState> parent, DfaState state) {
-    // TODO: Implement find
     /*
      Pseudocode:
      If parent[state] == state, return state
      Else, recursively find parent and apply path compression
      Return parent[state]
     */
-    throw new UnsupportedOperationException("Not implemented");
+        if (parent.get(state) == state){
+            return state; //we have find the root 
+        }
+        DfaState root = find(parent,parent.get(state));
+        parent.put(state, root);
+        return root;
+
+        //     if (parent.get(state) != state) {
+        //         parent.put(state, find(parent, parent.get(state))); // path compression
+        //     }
+        //     return parent.get(state);
+            
     }
 
     /**
@@ -106,13 +119,17 @@ public class DfaMinimizer {
      * @param s2 Second state.
      */
     private static void union(Map<DfaState, DfaState> parent, DfaState s1, DfaState s2) {
-    // TODO: Implement union
     /*
      Pseudocode:
      Find roots of s1 and s2
      If roots are different, set parent of one to the other
     */
-    throw new UnsupportedOperationException("Not implemented");
+
+        DfaState roots1= find(parent, s1);
+        DfaState roots2= find(parent, s2);
+        if (!roots1.equals(roots2)){
+            parent.put(roots2, roots1);
+        }
     }
 
     /**
@@ -129,32 +146,40 @@ public class DfaMinimizer {
          * @param s2 Second state.
          */
         public Pair(DfaState s1, DfaState s2) {
-            // TODO: Implement Pair constructor
             /*
              Pseudocode:
              Assign s1 and s2 so that s1.id <= s2.id
             */
-            throw new UnsupportedOperationException("Not implemented");
+            if(s1.id <=s2.id){
+                this.s1=s1;
+                this.s2=s2;
+            }else{
+                this.s1=s2;
+                this.s2=s1;
+            }
         }
 
         @Override
         public boolean equals(Object o) {
-            // TODO: Implement equals
             /*
              Pseudocode:
              Return true if both s1 and s2 ids match
             */
-            throw new UnsupportedOperationException("Not implemented");
+        
+            //case is instance of State
+                if (this == o) return true;
+                if (!(o instanceof Pair)) return false;
+                Pair other = (Pair) o;
+            return this.s1.id == other.s1.id && this.s2.id == other.s2.id;
         }
 
         @Override
         public int hashCode() {
-            // TODO: Implement hashCode
             /*
              Pseudocode:
              Return hash of s1.id and s2.id
-            */
-            throw new UnsupportedOperationException("Not implemented");
+             */
+            return Objects.hash(s1.id, s2.id);
         }
     }
 }
