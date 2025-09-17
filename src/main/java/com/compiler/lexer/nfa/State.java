@@ -27,6 +27,9 @@ public class State {
     public void setTokenID(String tokenID) {
         this.tokenID = tokenID;
     }
+    public String getTokenID() {
+        return tokenID;
+    }
 
     private static int nextId = 0;
     /**
