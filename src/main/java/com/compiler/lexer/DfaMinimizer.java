@@ -16,6 +16,8 @@
  */
 package com.compiler.lexer;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -26,6 +28,7 @@ import java.util.Set;
 
 import com.compiler.lexer.dfa.DFA;
 import com.compiler.lexer.dfa.DfaState;
+import com.compiler.lexer.nfa.State;
 
 
 /**
@@ -61,7 +64,112 @@ public class DfaMinimizer {
      6. Reconstruct transitions for minimized states
      7. Set start state and return minimized DFA
     */
-    throw new UnsupportedOperationException("Not implemented");
+        // Paso 1: Obtener y ordenar todos los estados
+        List<DfaState> allStates = new ArrayList<>(originalDfa.allStates);
+        allStates.sort(Comparator.comparingInt(s -> s.id));
+
+        // Paso 2: Inicializar tabla de pares (Pair -> Boolean) con los distinguibles iniciales
+        Map<Pair, Boolean> table = new HashMap<>();
+
+        for (int i = 0; i < allStates.size(); i++) {
+            for (int j = i + 1; j < allStates.size(); j++) {
+                DfaState s1 = allStates.get(i);
+                DfaState s2 = allStates.get(j);
+                Pair pair = new Pair(s1, s2);
+                boolean mark = s1.isFinal() != s2.isFinal();
+                table.put(pair, mark);
+            }
+        }
+
+        // Paso 3: Iterar y marcar pares distinguibles por transiciones
+        boolean changed;
+        do {
+            changed = false;
+            for (int i = 0; i < allStates.size(); i++) {
+                for (int j = i + 1; j < allStates.size(); j++) {
+                    DfaState s1 = allStates.get(i);
+                    DfaState s2 = allStates.get(j);
+                    Pair pair = new Pair(s1, s2);
+
+                    if (table.get(pair)) continue; // Ya marcado como distinguible
+
+                    for (Character symbol : alphabet) {
+                        DfaState t1 = s1.getTransition(symbol);
+                        DfaState t2 = s2.getTransition(symbol);
+
+                        if (t1 == null && t2 == null) continue;
+
+                        if (t1 == null || t2 == null) {
+                            table.put(pair, true);
+                            changed = true;
+                            break;
+                        }
+
+                        Pair targetPair = new Pair(t1, t2);
+                        Boolean targetMarked = table.get(targetPair);
+
+                        if (targetMarked != null && targetMarked) {
+                            table.put(pair, true);
+                            changed = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        } while (changed);
+
+        // Paso 4: Crear particiones (grupos de estados equivalentes)
+        List<Set<DfaState>> partitions = createPartitions(allStates, table);
+
+        // Paso 5: Crear nuevos estados para cada partición
+        Map<DfaState, DfaState> oldToNew = new HashMap<>();
+        Set<DfaState> newStates = new HashSet<>();
+
+        for (Set<DfaState> group : partitions) {
+            // Elegimos el primero como representativo
+            //DfaState representative = group.iterator().next();
+
+            // Creamos el nuevo estado basado en los NFA states del grupo
+            Set<State> combinedNfaStates = new HashSet<>();
+            for (DfaState old : group) {
+                combinedNfaStates.addAll(old.getName());
+            }
+            DfaState newState = new DfaState(combinedNfaStates);
+
+            // La finalidad será verdadera si alguno en el grupo es final
+            boolean isFinal = group.stream().anyMatch(DfaState::isFinal);
+            newState.setFinal(isFinal);
+
+            // Asociamos todos los antiguos con el nuevo
+            for (DfaState old : group) {
+                oldToNew.put(old, newState);
+            }
+
+            newStates.add(newState);
+        }
+
+        // Paso 6: Construir transiciones para los nuevos estados
+        for (DfaState oldState : allStates) {
+            DfaState newSource = oldToNew.get(oldState);
+            if (newSource == null) continue;
+
+            for (Map.Entry<Character, DfaState> entry : oldState.getTransitions().entrySet()) {
+                Character symbol = entry.getKey();
+                DfaState oldTarget = entry.getValue();
+                DfaState newTarget = oldToNew.get(oldTarget);
+
+                if (newTarget != null) {
+                    newSource.addTransition(symbol, newTarget);
+                }
+            }
+        }
+
+        // Paso 7: Identificar nuevo estado inicial
+        DfaState newStart = oldToNew.get(originalDfa.startState);
+
+        // Retornar nuevo DFA
+        return new DFA(newStart, new ArrayList<>(newStates));
+        
     }
 
     /**
