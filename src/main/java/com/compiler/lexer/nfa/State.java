@@ -22,6 +22,12 @@ import java.util.List;
  * </p>
  */
 public class State {
+
+    private String tokenID;
+    public void setTokenID(String tokenID) {
+        this.tokenID = tokenID;
+    }
+
     private static int nextId = 0;
     /**
      * Unique identifier for this state.
@@ -47,6 +53,7 @@ public class State {
         ++nextId;
 
         this.transitions = new LinkedList<>();
+        this.tokenID = "";
     }
 
     /**
