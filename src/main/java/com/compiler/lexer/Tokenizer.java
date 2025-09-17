@@ -3,10 +3,11 @@ package com.compiler.lexer;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+
+import java.util.Random;
 
 import com.compiler.lexer.nfa.*;
 import com.compiler.lexer.dfa.*;
@@ -105,13 +106,25 @@ public class Tokenizer {
     public static void main(String[] args) {
         Map<String, String> regexMap = new HashMap<>();
         regexMap.put("IF", "if");
-        regexMap.put("ID", "a|b|c");
-        regexMap.put("NUM", "0|1|2");
+        regexMap.put("ID", "(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)*");
+        regexMap.put("NUM", "(0|1|2|3|4|5|6|7|8|9)+");
 
         Tokenizer tokenizer = new Tokenizer(regexMap);
-        
 
-        Set<Character> alphabet = new HashSet<>(Arrays.asList('i', 'f', 'a', 'b', 'c', '0', '1', '2', ' '));
+        Set<Character> alphabet = new HashSet<>();
+        // Agregar dígitos 0-9
+        for (char c = '0'; c <= '9'; c++) {
+            alphabet.add(c);
+        }
+
+        // Agregar letras minúsculas a-z
+        for (char c = 'a'; c <= 'z'; c++) {
+            alphabet.add(c);
+        }
+
+        List<Character> alphaList = new LinkedList<>( alphabet );
+
+        
         tokenizer.buildDFA( alphabet );
 
         // Prueba 1: palabra "if"
@@ -121,8 +134,31 @@ public class Tokenizer {
         }
 
         // Prueba 2: secuencia "a 1 b"
-        List<Token> tokens2 = tokenizer.tokenize("a 1 b");
+        List<Token> tokens2 = tokenizer.tokenize("a1b");
         for (Token t : tokens2){
+            System.out.println(t);
+        }
+
+        //Prueba 3:
+        List<Token> tokens3 = tokenizer.tokenize("holaamigosdeyoutubehoyvengoconunloquendobienbuenoparaverunlexer");
+        for (Token t : tokens3){
+            System.out.println(t);
+        }
+
+        Random rn = new Random(2025);
+        StringBuilder random = new StringBuilder();
+        //Prueba 4:
+        for (int i=0; i<15; i++) {
+            random.append( alphaList.get( rn.nextInt( alphaList.size() ) ) );
+        }
+        System.out.println("Random: "+random);
+        List<Token> tokens4 = tokenizer.tokenize( random.toString() );
+        for (Token t : tokens4){
+            System.out.println(t);
+        }
+
+        List<Token> tokens5 = tokenizer.tokenize( "ififif" );
+        for (Token t : tokens5){
             System.out.println(t);
         }
     }
