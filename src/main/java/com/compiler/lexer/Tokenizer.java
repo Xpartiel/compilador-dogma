@@ -4,8 +4,10 @@ import java.util.List;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
 
 import com.compiler.lexer.nfa.*;
+import com.compiler.lexer.dfa.*;
 import com.compiler.lexer.regex.*;
 
 import com.compiler.lexer.nfa.State;
@@ -19,6 +21,7 @@ import com.compiler.lexer.nfa.State;
 public class Tokenizer {
 
     private NFA initialVersion;
+    private DFA currentRepresentation;
 
     /**
      * 
@@ -26,6 +29,7 @@ public class Tokenizer {
      */
     public Tokenizer( Map<String,String> regexs ){
         // List of individual NFAs for each token
+        this.currentRepresentation = null;
         List<NFA> temp = new LinkedList<>();
         RegexParser parser = new RegexParser();
         NFA tempNFA;
@@ -41,5 +45,9 @@ public class Tokenizer {
             start.addTransition( new Transition(null, tempNFA.getStartState() ) );
         }
         this.initialVersion = new NFA(start);
+    }
+
+    public void buildDFA( Set<Character> alphabet ){
+        this.currentRepresentation = NfaToDfaConverter.convertNfaToDfa(initialVersion, alphabet);
     }
 }
