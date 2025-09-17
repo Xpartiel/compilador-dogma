@@ -29,6 +29,11 @@ public class NFA {
         this.endState.isFinal = true;
     }
 
+    public NFA( State start ){
+        this.startState = start;
+        this.endState = null;
+    }
+
     /**
      * Returns the initial (start) state of the NFA.
      * @return the start state
