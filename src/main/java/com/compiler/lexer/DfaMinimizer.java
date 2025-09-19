@@ -126,9 +126,6 @@ public class DfaMinimizer {
         Set<DfaState> newStates = new HashSet<>();
 
         for (Set<DfaState> group : partitions) {
-            // Elegimos el primero como representativo
-            //DfaState representative = group.iterator().next();
-
             // Creamos el nuevo estado basado en los NFA states del grupo
             Set<State> combinedNfaStates = new HashSet<>();
             for (DfaState old : group) {

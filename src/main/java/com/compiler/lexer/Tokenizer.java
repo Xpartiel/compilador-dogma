@@ -129,18 +129,21 @@ public class Tokenizer {
 
         // Prueba 1: palabra "if"
         List<Token> tokens1 = tokenizer.tokenize("if");
+        System.out.println("Prueba 1: ");
         for (Token t : tokens1){
             System.out.println(t);
         }
 
-        // Prueba 2: secuencia "a 1 b"
+        // Prueba 2: secuencia "a1b"
         List<Token> tokens2 = tokenizer.tokenize("a1b");
+        System.out.println("Prueba 2: ");
         for (Token t : tokens2){
             System.out.println(t);
         }
 
         //Prueba 3:
         List<Token> tokens3 = tokenizer.tokenize("holaamigosdeyoutubehoyvengoconunloquendobienbuenoparaverunlexer");
+        System.out.println("Prueba 3: ");
         for (Token t : tokens3){
             System.out.println(t);
         }
@@ -148,10 +151,11 @@ public class Tokenizer {
         Random rn = new Random(2025);
         StringBuilder random = new StringBuilder();
         //Prueba 4:
+        System.out.println("Prueba 4: ");
         for (int i=0; i<15; i++) {
             random.append( alphaList.get( rn.nextInt( alphaList.size() ) ) );
         }
-        System.out.println("Random: "+random);
+        System.out.println("Input Random: "+random);
         List<Token> tokens4 = tokenizer.tokenize( random.toString() );
         for (Token t : tokens4){
             System.out.println(t);
