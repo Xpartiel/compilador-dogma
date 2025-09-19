@@ -16,12 +16,19 @@
  */
 package com.compiler.lexer;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import com.compiler.lexer.dfa.DFA;
 import com.compiler.lexer.dfa.DfaState;
+import com.compiler.lexer.nfa.State;
 
 
 /**
@@ -57,26 +64,177 @@ public class DfaMinimizer {
      6. Reconstruct transitions for minimized states
      7. Set start state and return minimized DFA
     */
-    throw new UnsupportedOperationException("Not implemented");
+        // Paso 1: Obtener y ordenar todos los estados
+        List<DfaState> allStates = new ArrayList<>(originalDfa.allStates);
+        allStates.sort(Comparator.comparingInt(s -> s.id));
+
+        // Paso 2: Inicializar tabla de pares (Pair -> Boolean) con los distinguibles iniciales
+        Map<Pair, Boolean> table = new HashMap<>();
+
+        for (int i = 0; i < allStates.size(); i++) {
+            for (int j = i + 1; j < allStates.size(); j++) {
+                DfaState s1 = allStates.get(i);
+                DfaState s2 = allStates.get(j);
+                Pair pair = new Pair(s1, s2);
+                boolean mark = s1.isFinal() != s2.isFinal();
+                table.put(pair, mark);
+            }
+        }
+
+        // Paso 3: Iterar y marcar pares distinguibles por transiciones
+        boolean changed;
+        do {
+            changed = false;
+            for (int i = 0; i < allStates.size(); i++) {
+                for (int j = i + 1; j < allStates.size(); j++) {
+                    DfaState s1 = allStates.get(i);
+                    DfaState s2 = allStates.get(j);
+                    Pair pair = new Pair(s1, s2);
+
+                    if (table.get(pair)) continue; // Ya marcado como distinguible
+
+                    for (Character symbol : alphabet) {
+                        DfaState t1 = s1.getTransition(symbol);
+                        DfaState t2 = s2.getTransition(symbol);
+
+                        if (t1 == null && t2 == null) continue;
+
+                        if (t1 == null || t2 == null) {
+                            table.put(pair, true);
+                            changed = true;
+                            break;
+                        }
+
+                        Pair targetPair = new Pair(t1, t2);
+                        Boolean targetMarked = table.get(targetPair);
+
+                        if (targetMarked != null && targetMarked) {
+                            table.put(pair, true);
+                            changed = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        } while (changed);
+
+        // Paso 4: Crear particiones (grupos de estados equivalentes)
+        List<Set<DfaState>> partitions = createPartitions(allStates, table);
+
+        // Paso 5: Crear nuevos estados para cada partición
+        Map<DfaState, DfaState> oldToNew = new HashMap<>();
+        Set<DfaState> newStates = new HashSet<>();
+
+        for (Set<DfaState> group : partitions) {
+            // Creamos el nuevo estado basado en los NFA states del grupo
+            Set<State> combinedNfaStates = new HashSet<>();
+            for (DfaState old : group) {
+                combinedNfaStates.addAll(old.getName());
+            }
+            DfaState newState = new DfaState(combinedNfaStates);
+
+            // La finalidad será verdadera si alguno en el grupo es final
+            boolean isFinal = group.stream().anyMatch(DfaState::isFinal);
+            newState.setFinal(isFinal);
+
+            // Asociamos todos los antiguos con el nuevo
+            for (DfaState old : group) {
+                oldToNew.put(old, newState);
+            }
+
+            newStates.add(newState);
+        }
+
+        // Paso 6: Construir transiciones para los nuevos estados
+        for (DfaState oldState : allStates) {
+            DfaState newSource = oldToNew.get(oldState);
+            if (newSource == null) continue;
+
+            for (Map.Entry<Character, DfaState> entry : oldState.getTransitions().entrySet()) {
+                Character symbol = entry.getKey();
+                DfaState oldTarget = entry.getValue();
+                DfaState newTarget = oldToNew.get(oldTarget);
+
+                if (newTarget != null) {
+                    newSource.addTransition(symbol, newTarget);
+                }
+            }
+        }
+
+        // Paso 7: Identificar nuevo estado inicial
+        DfaState newStart = oldToNew.get(originalDfa.startState);
+
+        // Retornar nuevo DFA
+        return new DFA(newStart, new ArrayList<>(newStates));
+        
     }
 
     /**
      * Groups equivalent states into partitions using union-find.
      *
+     * PSEUDOCODE
+     * 
+     * 1. Initialize each state as its own parent
+     * 2. For each pair not marked as distinguishable, union the states
+     * 3. Group states by their root parent
+     * 4. Return list of partitions
+     * 
      * @param allStates List of all DFA states.
      * @param table Table indicating which pairs are distinguishable.
      * @return List of partitions, each containing equivalent states.
      */
     private static List<Set<DfaState>> createPartitions(List<DfaState> allStates, Map<Pair, Boolean> table) {
-    // TODO: Implement createPartitions
-    /*
-     Pseudocode:
-     1. Initialize each state as its own parent
-     2. For each pair not marked as distinguishable, union the states
-     3. Group states by their root parent
-     4. Return list of partitions
-    */
-    throw new UnsupportedOperationException("Not implemented");
+        List<Set<DfaState>> res = new LinkedList<>();
+        Map<DfaState,DfaState> parent = new HashMap<>();
+
+        /* Step 1 */
+        for (DfaState state : allStates ) {
+            parent.put(state, state);
+        }
+
+        /* Step 2 */
+        for ( Pair par : table.keySet() ) {
+            if( !table.get(par) ){
+                union(parent, par.s1, par.s2);
+            }
+        }
+
+        /* Step 3 */
+        DfaState tempRoot;
+        HashSet<DfaState> tempTree;
+        boolean foundTree;
+
+        // For each state
+        for( DfaState state1 : allStates ) {
+            // Consider its root
+            tempRoot = find(parent, state1);
+            // Asume its set/tree doesn't exist
+            foundTree = false;
+            // For each set/tree in the known forest...
+            for( Set<DfaState> tree : res ){
+                // If the representative root is found
+                if( tree.contains(tempRoot) ){
+                    // Add current state
+                    tree.add(state1);
+                    // Indicate its set/tree has been found
+                    foundTree = true;
+                    break;
+                }
+            }
+            // No set/tree was found with the expected root
+            if( !foundTree ){
+                // It shall be created
+                tempTree = new HashSet<>();
+                // Its first element shall be its root
+                tempTree.add( tempRoot );
+                // Insert current state
+                tempTree.add( state1 );
+                // The set/tree shall be included into the forest
+                res.add( tempTree );
+            }
+        }
+
+        return res;
     }
 
     /**
@@ -88,14 +246,24 @@ public class DfaMinimizer {
      * @return Root parent of the state.
      */
     private static DfaState find(Map<DfaState, DfaState> parent, DfaState state) {
-    // TODO: Implement find
     /*
      Pseudocode:
      If parent[state] == state, return state
      Else, recursively find parent and apply path compression
      Return parent[state]
     */
-    throw new UnsupportedOperationException("Not implemented");
+        if (parent.get(state) == state){
+            return state; //we have find the root 
+        }
+        DfaState root = find(parent,parent.get(state));
+        parent.put(state, root);
+        return root;
+
+        //     if (parent.get(state) != state) {
+        //         parent.put(state, find(parent, parent.get(state))); // path compression
+        //     }
+        //     return parent.get(state);
+            
     }
 
     /**
@@ -106,13 +274,17 @@ public class DfaMinimizer {
      * @param s2 Second state.
      */
     private static void union(Map<DfaState, DfaState> parent, DfaState s1, DfaState s2) {
-    // TODO: Implement union
     /*
      Pseudocode:
      Find roots of s1 and s2
      If roots are different, set parent of one to the other
     */
-    throw new UnsupportedOperationException("Not implemented");
+
+        DfaState roots1= find(parent, s1);
+        DfaState roots2= find(parent, s2);
+        if (!roots1.equals(roots2)){
+            parent.put(roots2, roots1);
+        }
     }
 
     /**
@@ -129,32 +301,40 @@ public class DfaMinimizer {
          * @param s2 Second state.
          */
         public Pair(DfaState s1, DfaState s2) {
-            // TODO: Implement Pair constructor
             /*
              Pseudocode:
              Assign s1 and s2 so that s1.id <= s2.id
             */
-            throw new UnsupportedOperationException("Not implemented");
+            if(s1.id <=s2.id){
+                this.s1=s1;
+                this.s2=s2;
+            }else{
+                this.s1=s2;
+                this.s2=s1;
+            }
         }
 
         @Override
         public boolean equals(Object o) {
-            // TODO: Implement equals
             /*
              Pseudocode:
              Return true if both s1 and s2 ids match
             */
-            throw new UnsupportedOperationException("Not implemented");
+        
+            //case is instance of State
+                if (this == o) return true;
+                if (!(o instanceof Pair)) return false;
+                Pair other = (Pair) o;
+            return this.s1.id == other.s1.id && this.s2.id == other.s2.id;
         }
 
         @Override
         public int hashCode() {
-            // TODO: Implement hashCode
             /*
              Pseudocode:
              Return hash of s1.id and s2.id
-            */
-            throw new UnsupportedOperationException("Not implemented");
+             */
+            return Objects.hash(s1.id, s2.id);
         }
     }
 }
