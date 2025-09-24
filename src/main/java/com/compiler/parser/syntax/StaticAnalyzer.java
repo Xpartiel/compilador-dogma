@@ -21,6 +21,7 @@ public class StaticAnalyzer {
 
     //nosotros agregamos esto:
     private final Symbol epsilon = new Symbol("ε", SymbolType.TERMINAL);
+    private final Symbol endInputSymbol = new Symbol("$", SymbolType.TERMINAL);
 
     public StaticAnalyzer(Grammar grammar) {
         this.grammar = grammar;
@@ -125,7 +126,6 @@ public class StaticAnalyzer {
      * @return A map from Symbol to its FOLLOW set.
      */
     public Map<Symbol, Set<Symbol>> getFollowSets() {
-        // TODO: Implement the algorithm to calculate FOLLOW sets.
         /*
          * Pseudocode for FOLLOW set calculation:
          *
@@ -145,6 +145,92 @@ public class StaticAnalyzer {
          *
          * Note: This method should call getFirstSets() first to obtain FIRST sets.
          */
-        throw new UnsupportedOperationException("Not implemented");
+        
+        //Paso 1:
+            //For each non-terminal A, FOLLOW(A) = {}
+
+            for (Symbol simb : grammar.getNonTerminals()){
+                //declaramos un nuevo set vacio.
+                HashSet<Symbol> set_aux =  new HashSet<>();
+                this.followSets.put(simb, set_aux);
+            }
+        //Paso 2:
+            //Add $ (end of input) to FOLLOW(S), where S is the start symbol
+            this.followSets.get(this.grammar.getStartSymbol()).add(endInputSymbol);
+        
+        //Paso 3:
+        /*
+         * 
+         * 3. Repeat until no changes:
+         *      For each production B -> X1 X2 ... Xn:
+         *          For each Xi (where Xi is a non-terminal):
+         *              a. For each symbol Xj after Xi (i < j <= n):
+         *                  - Add FIRST(Xj) - {ε} to FOLLOW(Xi)
+         *                  - If ε is in FIRST(Xj), continue to next Xj
+         *                    Otherwise, break
+         *              b. If ε is in FIRST(Xj) for all j > i, add FOLLOW(B) to FOLLOW(Xi)
+         */
+            
+            boolean changes;
+            //mientras no haya cambios repite:
+            do {
+                changes=false;
+                //contador auxiliar para usar dentro de un ciclo interno (podemos cambiarlo despues por un for iterado e igualar j=i+1)
+                int contAux=1;
+                //Para cada produccion B -> X1 X2 ... Xn:
+                for (Production prod : this.grammar.getProductions()){
+
+                    //Para cada xi:
+                    for (Symbol xi : prod.getRight()){
+
+                        //a)
+                        
+                        //si xi es un simbolo no terminal.
+                        if (this.grammar.getNonTerminals().contains(xi)){
+
+                            //For each symbol Xj after Xi (i < j <= n):
+                            //para cada simbolo Xj despues de Xi tq se cumple que (i<j<=n), n= cant de producciones.
+                            
+                            //NOTA: TENGO DUDA DE SI DEBO ITERAR SOBRE TODAS LAS PRODUCCIONES O SI DEBO ITERAR SOBRE EL NOMBRE (string)
+                            //  QUE REPRESENTA AL SIMBOLO.
+                            for (int j = contAux; j < this.grammar.getProductions().size(); j++){
+                                //primero necesito encontrar a la produccion Xj
+                                Production xj=this.grammar.getProductions().get(contAux);
+
+                                //ahora necesito encontrar el conjunto first de xj y obtener una copia
+                                Set<Symbol> xjFIRST = new HashSet<>(this.getFirstSets().get(xj));
+                                
+                                //eliminamos el epsilon y guardamos la bandera.
+                                boolean flag =xjFIRST.remove(epsilon);
+
+                                //- Add FIRST(Xj) - {ε} to FOLLOW(Xi)
+                                //Agregamos FIRST(Xj) - {ε} a FOLLOW(Xi)
+                                this.followSets.put(xi, xjFIRST);
+                                
+                                //If ε is in FIRST(Xj), continue to next Xj
+                                //Otherwise, break
+                                if (!flag){
+                                    break;
+                                }
+                                contAux++;
+                            }
+                        }
+
+                        
+                        //b) If ε is in FIRST(Xj) for all j > i, add FOLLOW(B) to FOLLOW(Xi)
+
+                        
+                    }
+                    
+                }
+
+            
+            
+            } while (changes);
+
+
+
+        return null;
+
     }
 }
