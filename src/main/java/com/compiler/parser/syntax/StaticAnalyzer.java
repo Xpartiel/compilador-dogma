@@ -19,7 +19,7 @@ public class StaticAnalyzer {
     private final Map<Symbol, Set<Symbol>> firstSets;
     private final Map<Symbol, Set<Symbol>> followSets;
 
-    //nosotros agregamos esto:
+    //Agregamos los siguientes simbolos para la implementacion:
     private final Symbol epsilon = new Symbol("ε", SymbolType.TERMINAL);
     private final Symbol endInputSymbol = new Symbol("$", SymbolType.TERMINAL);
 
@@ -53,18 +53,19 @@ public class StaticAnalyzer {
          */
 
         // Paso 1:
-        //para el caso de los terminales.
+        //Para el caso de los terminales.
         for (Symbol simb:this.grammar.getTerminals()){
                 HashSet<Symbol> set_aux =  new HashSet<>();
                 set_aux.add(simb);
                 firstSets.put(simb,set_aux);
         }
-        //conjunto con epsilon
+
+        //Conjunto con epsilon
         HashSet<Symbol> setAux= new HashSet<>();
         setAux.add(epsilon);
         firstSets.put(epsilon,setAux);
 
-        //para el caso de los no terminales.
+        //Para el caso de los no terminales.
         for (Symbol simb:this.grammar.getNonTerminals()){
             HashSet<Symbol> set_aux =  new HashSet<>();
             firstSets.put(simb,set_aux);
@@ -74,27 +75,25 @@ public class StaticAnalyzer {
         boolean changes;
         do {
             changes=false;
-            //por cada produccion
+            //Por cada produccion
             for (Production prod: grammar.getProductions()){
 
-                //contador de simbolos auxiliar para el paso b
+                //Contador de simbolos auxiliar para el paso b
                 int countSymbol=prod.getRight().size();
-                //contador de epsilons auxiliar para el paso b.
+                //Contador de epsilons auxiliar para el paso b.
                 int countEpsilon=0;
 
-                //por cada simbolo del lado derecho
+                //Por cada simbolo del lado derecho
                 for (Symbol simb : prod.getRight()){
-                    //a. Add FIRST(Xi) - {ε} to FIRST(A)
+
                     Set<Symbol> temp = new HashSet<>(firstSets.get(simb));
-                    //temp=firstSets.get(simb);
-                    //boolean flag=temp.remove(epsilon);
                     boolean flag = firstSets.get(simb).contains(epsilon);
                     temp.remove(epsilon);
 
                     //Obtenemos el FIRST del lado izquierdo
                     Set<Symbol> firstLeft = firstSets.get(prod.getLeft());
 
-                    //agregamos el conjunto temp al FIRST de A
+                    //Agregamos el conjunto temp al FIRST de A
                     if (firstLeft.addAll(temp)) {
                         //si hubo cambios, actualizamos la variable del ciclo.
                         changes = true;
@@ -108,7 +107,7 @@ public class StaticAnalyzer {
                         countEpsilon++;
                     }
 
-                    //- If ε is in FIRST(Xi) for all i, add ε to FIRST(A)
+                    //If ε is in FIRST(Xi) for all i, add ε to FIRST(A)
                     if (countEpsilon==countSymbol){
                         if (firstLeft.add(epsilon)) {
                             changes = true;
@@ -146,91 +145,78 @@ public class StaticAnalyzer {
          * Note: This method should call getFirstSets() first to obtain FIRST sets.
          */
         
-        //Paso 1:
-            //For each non-terminal A, FOLLOW(A) = {}
+         //Obtener FirstsSets
+         this.getFirstSets();
 
+        //Paso 1:
             for (Symbol simb : grammar.getNonTerminals()){
                 //declaramos un nuevo set vacio.
                 HashSet<Symbol> set_aux =  new HashSet<>();
                 this.followSets.put(simb, set_aux);
             }
+
         //Paso 2:
             //Add $ (end of input) to FOLLOW(S), where S is the start symbol
             this.followSets.get(this.grammar.getStartSymbol()).add(endInputSymbol);
         
+
         //Paso 3:
-        /*
-         * 
-         * 3. Repeat until no changes:
-         *      For each production B -> X1 X2 ... Xn:
-         *          For each Xi (where Xi is a non-terminal):
-         *              a. For each symbol Xj after Xi (i < j <= n):
-         *                  - Add FIRST(Xj) - {ε} to FOLLOW(Xi)
-         *                  - If ε is in FIRST(Xj), continue to next Xj
-         *                    Otherwise, break
-         *              b. If ε is in FIRST(Xj) for all j > i, add FOLLOW(B) to FOLLOW(Xi)
-         */
-            
             boolean changes;
-            //mientras no haya cambios repite:
+            //Mientras no haya cambios repite:
             do {
                 changes=false;
-                //contador auxiliar para usar dentro de un ciclo interno (podemos cambiarlo despues por un for iterado e igualar j=i+1)
-                int contAux=1;
+                
                 //Para cada produccion B -> X1 X2 ... Xn:
-                for (Production prod : this.grammar.getProductions()){
-
+                for (int i=0; i<this.grammar.getProductions().size();i++){ 
+                    
+                    //Obtenemos la produccion actual.
+                    Production prod = this.grammar.getProductions().get(i);
                     //Para cada xi:
                     for (Symbol xi : prod.getRight()){
 
                         //a)
-                        
-                        //si xi es un simbolo no terminal.
+                        //Si xi es un simbolo no terminal.
                         if (this.grammar.getNonTerminals().contains(xi)){
+                            //var auxiliar para saber si todos los xj continenen epsilon.
+                            boolean epsilonInAll = true;
 
-                            //For each symbol Xj after Xi (i < j <= n):
-                            //para cada simbolo Xj despues de Xi tq se cumple que (i<j<=n), n= cant de producciones.
-                            
-                            //NOTA: TENGO DUDA DE SI DEBO ITERAR SOBRE TODAS LAS PRODUCCIONES O SI DEBO ITERAR SOBRE EL NOMBRE (string)
-                            //  QUE REPRESENTA AL SIMBOLO.
-                            for (int j = contAux; j < this.grammar.getProductions().size(); j++){
-                                //primero necesito encontrar a la produccion Xj
-                                Production xj=this.grammar.getProductions().get(contAux);
+                            //para cada simbolo Xj despues de Xi tq se cumple que (i<j<=n), n= cant de producciones.                            
+                            for (int j = i+1; j < prod.getRight().size(); j++){
+                                
+                                //primero necesito encontrar al simbolo de Xj
+                                Symbol xj= prod.getRight().get(j);
 
                                 //ahora necesito encontrar el conjunto first de xj y obtener una copia
                                 Set<Symbol> xjFIRST = new HashSet<>(this.getFirstSets().get(xj));
                                 
                                 //eliminamos el epsilon y guardamos la bandera.
-                                boolean flag =xjFIRST.remove(epsilon);
+                                boolean hasEpsilon =xjFIRST.remove(epsilon);
 
-                                //- Add FIRST(Xj) - {ε} to FOLLOW(Xi)
-                                //Agregamos FIRST(Xj) - {ε} a FOLLOW(Xi)
-                                this.followSets.put(xi, xjFIRST);
+                                //Agregamos FIRST(Xj) - {ε} a FOLLOW(Xi) y verificamos si hubo cambios
+                                changes=this.followSets.get(xi).addAll(xjFIRST);
                                 
                                 //If ε is in FIRST(Xj), continue to next Xj
                                 //Otherwise, break
-                                if (!flag){
+                                if (!hasEpsilon){
                                     break;
                                 }
-                                contAux++;
                             }
+
+                            //b) If ε is in FIRST(Xj) for all j > i, add FOLLOW(B) to FOLLOW(Xi)
+                            if (i == prod.getRight().size() - 1 || epsilonInAll) {
+                                changes=this.followSets.get(xi).addAll(this.followSets.get(prod.getLeft()));
+                                
+                            }
+
                         }
-
-                        
-                        //b) If ε is in FIRST(Xj) for all j > i, add FOLLOW(B) to FOLLOW(Xi)
-
                         
                     }
                     
-                }
-
-            
+                }  
             
             } while (changes);
 
-
-
-        return null;
+        return this.followSets;
 
     }
 }
