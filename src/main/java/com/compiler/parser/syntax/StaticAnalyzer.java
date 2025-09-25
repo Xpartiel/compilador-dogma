@@ -123,100 +123,83 @@ public class StaticAnalyzer {
     /**
      * Calculates and returns the FOLLOW sets for non-terminals.
      * @return A map from Symbol to its FOLLOW set.
+     * 
+     * Pseudocode:
+     * 1. For each non-terminal A, FOLLOW(A) = {}
+     * 2. Add $ (end of input) to FOLLOW(S), where S is the start symbol
+     *
+     * 3. Repeat until no changes:
+     *      For each production B -> X1 X2 ... Xn:
+     *          For each Xi (where Xi is a non-terminal):
+     *              a. For each symbol Xj after Xi (i < j <= n):
+     *                  - Add FIRST(Xj) - {ε} to FOLLOW(Xi)
+     *                  - If ε is in FIRST(Xj), continue to next Xj
+     *                    Otherwise, break
+     *              b. If ε is in FIRST(Xj) for all j > i, add FOLLOW(B) to FOLLOW(Xi)
+     *
+     * 4. Return the map of FOLLOW sets for all non-terminals.
+     *
+     * Note: This method should call getFirstSets() first to obtain FIRST sets.
      */
     public Map<Symbol, Set<Symbol>> getFollowSets() {
-        /*
-         * Pseudocode for FOLLOW set calculation:
-         *
-         * 1. For each non-terminal A, FOLLOW(A) = {}
-         * 2. Add $ (end of input) to FOLLOW(S), where S is the start symbol
-         *
-         * 3. Repeat until no changes:
-         *      For each production B -> X1 X2 ... Xn:
-         *          For each Xi (where Xi is a non-terminal):
-         *              a. For each symbol Xj after Xi (i < j <= n):
-         *                  - Add FIRST(Xj) - {ε} to FOLLOW(Xi)
-         *                  - If ε is in FIRST(Xj), continue to next Xj
-         *                    Otherwise, break
-         *              b. If ε is in FIRST(Xj) for all j > i, add FOLLOW(B) to FOLLOW(Xi)
-         *
-         * 4. Return the map of FOLLOW sets for all non-terminals.
-         *
-         * Note: This method should call getFirstSets() first to obtain FIRST sets.
-         */
-        
-         //Obtener FirstsSets
-         this.getFirstSets();
+        this.getFirstSets();// Assure First Sets have been calculated
 
-        //Paso 1:
-            for (Symbol simb : grammar.getNonTerminals()){
-                //declaramos un nuevo set vacio.
-                HashSet<Symbol> set_aux =  new HashSet<>();
-                this.followSets.put(simb, set_aux);
+        // Step 1:
+            for (Symbol symbol : grammar.getNonTerminals()){
+                // Initialize empty set.
+                this.followSets.put( symbol , new HashSet<>());
             }
 
-        //Paso 2:
-            //Add $ (end of input) to FOLLOW(S), where S is the start symbol
-            this.followSets.get(this.grammar.getStartSymbol()).add(endInputSymbol);
+        // Step 2:
+        // Add $ (end of input) to FOLLOW(S), where S is the start symbol
+        this.followSets.get( this.grammar.getStartSymbol() ).add( endInputSymbol );
         
 
-        //Paso 3:
-            boolean changes;
-            //Mientras no haya cambios repite:
-            do {
-                changes=false;
+        // Step 3:
+        boolean changes;
+        do { // Repeat until no changes are found
+            changes=false;    
+            // For each production B -> X1 X2 ... Xn:
+            for (int i=0; i<this.grammar.getProductions().size();i++){ 
+                // Get current production
+                Production prod = this.grammar.getProductions().get(i);
                 
-                //Para cada produccion B -> X1 X2 ... Xn:
-                for (int i=0; i<this.grammar.getProductions().size();i++){ 
-                    
-                    //Obtenemos la produccion actual.
-                    Production prod = this.grammar.getProductions().get(i);
-                    //Para cada xi:
-                    for (Symbol xi : prod.getRight()){
-
-                        //a)
-                        //Si xi es un simbolo no terminal.
-                        if (this.grammar.getNonTerminals().contains(xi)){
-                            //var auxiliar para saber si todos los xj continenen epsilon.
-                            boolean epsilonInAll = true;
-
-                            //para cada simbolo Xj despues de Xi tq se cumple que (i<j<=n), n= cant de producciones.                            
-                            for (int j = i+1; j < prod.getRight().size(); j++){
-                                
-                                //primero necesito encontrar al simbolo de Xj
-                                Symbol xj= prod.getRight().get(j);
-
-                                //ahora necesito encontrar el conjunto first de xj y obtener una copia
-                                Set<Symbol> xjFIRST = new HashSet<>(this.getFirstSets().get(xj));
-                                
-                                //eliminamos el epsilon y guardamos la bandera.
-                                boolean hasEpsilon =xjFIRST.remove(epsilon);
-
-                                //Agregamos FIRST(Xj) - {ε} a FOLLOW(Xi) y verificamos si hubo cambios
-                                changes=this.followSets.get(xi).addAll(xjFIRST);
-                                
-                                //If ε is in FIRST(Xj), continue to next Xj
-                                //Otherwise, break
-                                if (!hasEpsilon){
-                                    break;
-                                }
-                            }
-
-                            //b) If ε is in FIRST(Xj) for all j > i, add FOLLOW(B) to FOLLOW(Xi)
-                            if (i == prod.getRight().size() - 1 || epsilonInAll) {
-                                changes=this.followSets.get(xi).addAll(this.followSets.get(prod.getLeft()));
-                                
-                            }
-
-                        }
+                // For each xi
+                for (Symbol xi : prod.getRight()){
+                    // If xi is a non-terminal symbol
+                    if (this.grammar.getNonTerminals().contains(xi)){
+                        // Auxiliar variable to identify if every xj has an epsilon.
+                        boolean epsilonInAll = true;
                         
+                        // For each Xj symbol after Xi, with i < j <= production ammount
+                        for (int j = i+1; j < prod.getRight().size(); j++){
+                            // Find Xj symbol
+                            Symbol xj= prod.getRight().get(j);
+
+                            // Obtain Xj's FIRST set copy
+                            Set<Symbol> xjFIRST = new HashSet<>(this.getFirstSets().get(xj));
+                            
+                            // Remove epsilon (if any) from the copy
+                            boolean hasEpsilon =xjFIRST.remove(epsilon);
+
+                            // Add FIRST(Xj)-{ε} to FOLLOW(Xi). Verify if any changes were made
+                            changes=this.followSets.get(xi).addAll(xjFIRST);
+
+                            // If epsilon isn't in FIRST(Xj), break
+                            if ( !hasEpsilon ){
+                                break;
+                            }
+                        }
+
+                        //If epsilon is contained in FIRST(Xj) for each i<j, 
+                        if ( i==(prod.getRight().size()-1) || epsilonInAll ){
+                            // Add FOLLOW(B) to FOLLOW(Xi) 
+                            changes = this.followSets.get(xi).addAll( this.followSets.get(prod.getLeft()) );
+                        }
                     }
-                    
-                }  
-            
-            } while (changes);
-
-        return this.followSets;
-
+                }
+            }
+        }while( changes );
+        return this.followSets; //Step 4 : Return FOLLOW sets
     }
 }
