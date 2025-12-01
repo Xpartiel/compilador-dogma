@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "parser.tab.h" // Archivo generado por Bison
+#include "parser.tab.h" /* Archivo generado por Bison */
 
 /* Para compatibilidad con la unión yylval */
 extern YYSTYPE yylval;
@@ -26,12 +26,34 @@ COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 {COMMENT}   { /* comentario uni/multi linea */ }
 
 {NUMBER}    { yylval.num = atof(yytext); return NUMBER; }
-//{DIGIT}+(\.{DIGIT}+)? { yylval.str = strdup(yytext); return LIT_NUMBER; }
-//{NUMBER}    { yylval.num = atof(yytext); return NUMBER; }
+/*{DIGIT}+(\.{DIGIT}+)? { yylval.str = strdup(yytext); return LIT_NUMBER; }*/
+/*{NUMBER}    { yylval.num = atof(yytext); return NUMBER; }*/
 {ID}        { yylval.id = strdup(yytext); return ID; }
 
-//{DIGIT}+    {yylval.intVal = atoi(yytext); return LIT_INTEGER;}
-//{DIGIT}+"."{DIGIT}+ { yylval.floatVal = atof(yytext); return LIT_FLOAT;} // ESTA MAL
+/*{DIGIT}+    {yylval.intVal = atoi(yytext); return LIT_INTEGER;}*/
+/*{DIGIT}+"."{DIGIT}+ { yylval.floatVal = atof(yytext); return LIT_FLOAT;}  ESTA MAL*/
+
+/* token de string */
+\"([^"\\]|\\.)*\" {
+    /* Largo del string encontrado */
+    int len = yyleng;
+
+    /* Crear un buffer para el contenido SIN comillas */
+    char *contenido = (char*) malloc(len - 1); 
+    /* len - 2 caracteres internos + 1 para '\0' */
+
+    /* Copiar desde yytext+1 (salta la primera comilla)
+       hasta antes de la última comilla */
+    strncpy(contenido, yytext + 1, len - 2);
+
+    /* Terminar en '\0' */
+    contenido[len - 2] = '\0';
+
+    /* Guardar en yylval */
+    yylval.str = contenido;
+
+    return LIT_STRING;
+}
 
 /* Quita espacios */
 [ \t]+      { /* Ignorar */ }
@@ -47,19 +69,19 @@ COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 "!!"        { return BREAK; }
 "<!"        { return CONTINUE; }
 "::"        { return RETURN_VALUE; }
-"->"        { return RETURN_TYPE; } // return para funcion
+"->"        { return RETURN_TYPE; } /* return para funcion */
 ":|"        { return ELSE_IF; }
 "&&"        { return BOOL_AND; }
 "||"        { return BOOL_OR; }
 
 /* tipo de dato */
-"#.."       { return TYPE_DOUBLE; } // double
-"#."        { return TYPE_FLOAT; } // float
-"#"         { return TYPE_INTEGER; } // int
-"@"         { return TYPE_STRING; } // string
-"\?'"       { return TYPE_BOOLEAN; } // bool
-"\[>\]"       { return TYPE_LIST; } // list
-"\[\]"        { return TYPE_ARRAY; } // array
+"#.."       { return TYPE_DOUBLE; } /* double */
+"#."        { return TYPE_FLOAT; }  /* float */
+"#"         { return TYPE_INTEGER; }    /* int */
+"@"         { return TYPE_STRING; } /* string */
+"\?'"       { return TYPE_BOOLEAN; }    /* bool */
+"\[>\]"       { return TYPE_LIST; } /* list */
+"\[\]"        { return TYPE_ARRAY; }    /* array */
 
 
 /* palabras reservadas */
@@ -75,9 +97,8 @@ COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 "<"         { return OP_LESSER; }
 ">"         { return OP_GREATER;}
 
-\n          { return '\n'; }
+\n          { /* return '\n'; */ }
 \r          { /* ignorar */ }
-//.           { return yytext[0]; } // Retorna cualquier otro carácter tal cual
 
 {OPERATOR}  { /* dejamos esto por compatibilidad si se usa; pero preferimos literales */ return yytext[0]; }
 
