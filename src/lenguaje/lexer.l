@@ -22,47 +22,39 @@ OPERATOR    [+\-*/]
 COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 
 %%
-/* comentario */
 {COMMENT}   { /* comentario uni/multi linea */ }
 
 {NUMBER}    { yylval.num = atof(yytext); return NUMBER; }
-/*{DIGIT}+(\.{DIGIT}+)? { yylval.str = strdup(yytext); return LIT_NUMBER; }*/
-/*{NUMBER}    { yylval.num = atof(yytext); return NUMBER; }*/
 {ID}        { yylval.id = strdup(yytext); return ID; }
 
-/*{DIGIT}+    {yylval.intVal = atoi(yytext); return LIT_INTEGER;}*/
-/*{DIGIT}+"."{DIGIT}+ { yylval.floatVal = atof(yytext); return LIT_FLOAT;}  ESTA MAL*/
-
-/* token de string */
 \"([^"\\]|\\.)*\" {
-    /* Largo del string encontrado */
+    
     int len = yyleng;
 
-    /* Crear un buffer para el contenido SIN comillas */
+    
     char *contenido = (char*) malloc(len - 1); 
-    /* len - 2 caracteres internos + 1 para '\0' */
+    
 
-    /* Copiar desde yytext+1 (salta la primera comilla)
-       hasta antes de la última comilla */
+    
     strncpy(contenido, yytext + 1, len - 2);
 
-    /* Terminar en '\0' */
+    
     contenido[len - 2] = '\0';
 
-    /* Guardar en yylval */
+    
     yylval.str = contenido;
 
     return LIT_STRING;
 }
 
-/* Quita espacios */
+
 [ \t]+      { /* Ignorar */ }
 
-/* operadores relacionales largos */
+
 "<="        { return OP_LESSER_EQUAL; }
 ">="        { return OP_GREATER_EQUAL; }
 
-/* tokens largos */
+
 "<-"        { return ASSIGN; }
 "<<"        { return BEGIN_LOOP; }
 ">>"        { return END_LOOP; }
@@ -74,7 +66,6 @@ COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 "&&"        { return BOOL_AND; }
 "||"        { return BOOL_OR; }
 
-/* tipo de dato */
 "#.."       { return TYPE_DOUBLE; } /* double */
 "#."        { return TYPE_FLOAT; }  /* float */
 "#"         { return TYPE_INTEGER; }    /* int */
@@ -83,15 +74,13 @@ COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 "\[>\]"       { return TYPE_LIST; } /* list */
 "\[\]"        { return TYPE_ARRAY; }    /* array */
 
-
-/* palabras reservadas */
 "?"         { return IF; }
 ";"         { return SEQUENCE_SEPARATOR; }
 ":"         { return ELSE; }
 "{"         { return BEGIN_SEQUENCE; }
 "}"         { return END_SEQUENCE; }
 
-/* operadores cortos */
+
 "!"         { return BOOL_NOT; }
 "="         { return OP_EQUALS; }
 "<"         { return OP_LESSER; }

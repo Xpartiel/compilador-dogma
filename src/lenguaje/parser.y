@@ -1,8 +1,11 @@
-%{
+%code requires {
+    typedef struct ASTNode ASTNode;
+}
 /*  ============================
     SECCIÓN 1: C prologue
     Código C que se copia al inicio del .c generado.
     ============================ */
+%{
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -120,7 +123,7 @@ ASTNode *new_string(char *s){
 
 ASTNode* new_boolean(int v){
     ASTNode* n = malloc(sizeof(ASTNode));
-    n->kind = AST_BOOL;
+    n->kind = AST_BOOLEAN;
     n->boolean = v;
     return n;
 }
@@ -195,9 +198,10 @@ void free_ast(ASTNode* n){
             free_ast(n->unop.expr);
             break;
         case AST_ASSIGN:
-            free(n->assign.id);
+            free(n->assign.name);
             free_ast(n->assign.value);
             break;
+        /*
         case AST_IF:
             free_ast(n->if_stmt.cond);
             free_ast(n->if_stmt.then_branch);
@@ -210,6 +214,7 @@ void free_ast(ASTNode* n){
         case AST_RETURN:
             free_ast(n->ret.value);
             break;
+        */
         case AST_SEQUENCE:
             /* Si implementas secuencias con listas, liberarlas aquí */
             break;
@@ -229,7 +234,7 @@ double eval_ast(ASTNode* n){
         case AST_IDENTIFIER: return obtener(n->id);
         case AST_ASSIGN: {
             double v = eval_ast(n->assign.value);
-            guardar(n->assign.id, v);
+            guardar(n->assign.name, v);
             return v;
         }
         case AST_UNOP: {
@@ -260,19 +265,20 @@ double eval_ast(ASTNode* n){
             return 0.0;
     }
 }
-%}
 
+
+%}
 /* ================================
     SECCIÓN 2: Declaraciones Bison
    ================================ */
 
 /* union con primitivas y nodo */
 %union {
-    ASTNode* node;   /* para no-terminales que producen AST */
     double num;      /* NUMBER token */
     char* id;        /* ID token */
     char* str;       /* LIT_STRING token */
     int boolean;     /* (opcional) si llegas a tener literales booleanos */
+    ASTNode* node;   /* para no-terminales que producen AST */
 }
 
 /* Tokens (sin modificar nombres) */
@@ -284,6 +290,7 @@ double eval_ast(ASTNode* n){
 %token BEGIN_LOOP  END_LOOP BREAK CONTINUE RETURN_VALUE RETURN_TYPE
 %token IF ELSE_IF ELSE
 %token TYPE_DOUBLE TYPE_FLOAT TYPE_INTEGER TYPE_STRING TYPE_BOOLEAN TYPE_LIST TYPE_ARRAY
+%token ERROR
 
 %token BEGIN_SEQUENCE SEQUENCE_SEPARATOR END_SEQUENCE
 %token OP_EQUALS OP_LESSER OP_GREATER OP_GREATER_EQUAL OP_LESSER_EQUAL  // <=
@@ -324,17 +331,31 @@ statement_list:
 
 statement:
     expresion SEQUENCE_SEPARATOR    { $$ = $1; }
-    | ID ASSIGN expresion SEQUENCE_SEPARATOR { $$ = new_assign( $1 , $3 ); }
+    | ID ASSIGN expresion SEQUENCE_SEPARATOR {
+            ASTNode *node = new_assign($1, $3);
+            double val = eval_ast($3);
+            printf("Asignación: %s = %g\n", $1, val);
+            guardar($1, val);
+            $$ = node;
+        }
     ;
 
 expresion:
-    NUMBER  { $$ = new_num( $1 ); }
-    | LIT_STRING    { $$ = new_string( $1 ); }
-    | ID    { $$ = new_identifier( $1 ); }
-    | expresion '+' expresion   { $$ = new_binop( "+" , $1 , $3 ); }
-    | expresion '-' expresion   { $$ = new_binop( "-" , $1 , $3 ); }
-    | expresion '*' expresion   { $$ = new_binop( "*" , $1 , $3 ); }
-    | expresion '/' expresion   { $$ = new_binop( "/" , $1 , $3 ); }
+    NUMBER  { $$ = new_num( $1 ); printf("Numero reconocido: %g\n", $1); }
+    | LIT_STRING    { $$ = new_string($1); printf("String reconocida: %s\n" , $1 ); }
+    | ID    { $$ = new_identifier( $1 ); printf( "Variable %s" , $1 ); }
+    | expresion '+' expresion   { $$ = new_binop( "+" , $1 , $3 ); printf( "Suma resulta en: %g" , eval_ast($$) ); }
+    | expresion '-' expresion   { $$ = new_binop( "-" , $1 , $3 ); printf( "Resta resulta en: %g" , eval_ast($$) ); }
+    | expresion '*' expresion   { $$ = new_binop( "*" , $1 , $3 ); printf( "Suma resulta en: %g" , eval_ast($$) ); }
+    | expresion '/' expresion   {
+                                    if( eval_ast($3) == 0.0 ){
+                                        yyerror("division por 0");
+                                        $$ = new_num(0.0);
+                                    }else{
+                                        $$ = new_binop( "/" , $1 , $3 );
+                                        printf( "Division resulta en: %g" , eval_ast($$) );
+                                    }
+                                }
     | expresion OP_EQUALS expresion { $$ = new_binop( "=" , $1 , $3 ); }
     | expresion OP_LESSER expresion { $$ = new_binop( "<" , $1 , $3 ); }
     | expresion OP_GREATER expresion    { $$ = new_binop( ">" , $1 , $3 ); }
