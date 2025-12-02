@@ -64,6 +64,19 @@ typedef struct {
     int cap;
 } AST_Sequence;
 
+typedef struct {
+    ASTNode* condition; // obligatorio
+    ASTNode* if_branch; // obligatorio
+    ASTNode* elif_list; // null si no hay else-if
+    ASTNode* else_branch;   // null si no hay rama elses
+} AST_If;
+
+typedef struct {
+    ASTNode* condition; // obligatrio
+    ASTNode* branch;    // then, oblgatorio
+    ASTNode* next;  // branch chaining, null si es el ultimo else-if
+} AST_ElseIf ;
+
 struct ASTNode {
     ASTKind kind;
     union {
@@ -75,6 +88,7 @@ struct ASTNode {
         AST_UnOp unop;
         AST_Assign assign;
         AST_Sequence sequence;
+        AST_If conditional;
     };
 };
 
@@ -144,6 +158,32 @@ ASTNode *new_sequence(){
     n->sequence.count = 0;
     n->sequence.cap = 4;
     n->sequence.list = malloc(sizeof(ASTNode*) * 4);
+    return n;
+}
+
+ASTNode* new_if(ASTNode* cond,
+                ASTNode* if_branch,
+                ASTNode* elseif_list,
+                ASTNode* else_branch)
+{
+    ASTNode *n = malloc(sizeof(ASTNode));
+    n->type = AST_IF;
+    n->ifs.condition = cond;
+    n->ifs.if_branch = if_branch;
+    n->ifs.elseif_list = elseif_list;
+    n->ifs.else_branch = else_branch;
+    return n;
+}
+
+ASTNode* new_elseif(ASTNode* cond,
+                    ASTNode* branch,
+                    ASTNode* next)
+{
+    ASTNode *n = malloc(sizeof(ASTNode));
+    n->type = AST_ELSEIF;
+    n->elseifnode.condition = cond;
+    n->elseifnode.branch = branch;
+    n->elseifnode.next = next;
     return n;
 }
 

@@ -89,9 +89,12 @@ program:
     ;
 
 statement_list:
-    statement   { $$ = new_sequence(); sequence_add( $$ , $1 ); }
+    statement  { $$ = new_sequence(); sequence_add( $$ , $2 ); }
     | statement_list statement { sequence_add( $1 , $2 ); $$ = $1; }
     ;
+
+block:
+    BEGIN_SEQUENCE statement_list END_SEQUENCE  { $$ = $2; }
 
 statement:
     expresion SEQUENCE_SEPARATOR    { $$ = $1; }
@@ -102,6 +105,7 @@ statement:
             guardar($1, val);
             $$ = node;
         }
+    | if_statement  { $$ = $1; }
     ;
 
 expresion:
@@ -124,42 +128,71 @@ expresion:
     | PARENTHESES_OPEN expresion PARENTHESES_CLOSE { $$ = $2; }
     | expresion OP_PLUS expresion   {
         $$ = new_binop( "+" , $1 , $3 );
-        printf( "Suma resulta en: %g" , eval_ast($$) ); }
+        printf( "Suma resulta en: %g\n" , eval_ast($$) ); }
     | expresion OP_MINUS expresion   {
         $$ = new_binop( "-" , $1 , $3 );
-        printf( "Resta resulta en: %g" , eval_ast($$) ); }
+        printf( "Resta resulta en: %g\n" , eval_ast($$) ); }
     | expresion OP_TIMES expresion   {
         $$ = new_binop( "*" , $1 , $3 );
-        printf( "Producto resulta en: %g" , eval_ast($$) ); }
+        printf( "Producto resulta en: %g\n" , eval_ast($$) ); }
     | expresion OP_DIVIDE expresion   {
         if( eval_ast($3) == 0.0 ){
             yyerror("division por 0");
             $$ = new_num(0.0);
         }else{
             $$ = new_binop( "/" , $1 , $3 );
-            printf( "Division resulta en: %g" , eval_ast($$) ); }}
+            printf( "Division resulta en: %g\n" , eval_ast($$) ); }}
     | expresion OP_EQUALS expresion {
         $$ = new_binop( "=" , $1 , $3 );
-        printf( "Comparacion de Igualdad: %g" , eval_ast($$) );}
+        printf( "Comparacion de Igualdad: %g\n" , eval_ast($$) );}
     | expresion OP_LESSER expresion {
         $$ = new_binop( "<" , $1 , $3 );
-        printf( "Comparacion menor que: %g" , eval_ast($$) );}
+        printf( "Comparacion menor que: %g\n" , eval_ast($$) );}
     | expresion OP_GREATER expresion    {
         $$ = new_binop( ">" , $1 , $3 );
-        printf( "Comparacion mayor que: %g" , eval_ast($$) );}
+        printf( "Comparacion mayor que: %g\n" , eval_ast($$) );}
     | expresion OP_LESSER_EQUAL expresion   {
         $$ = new_binop( "<=" , $1 , $3 );
-        printf( "Comparacion menor o igual que: %g" , eval_ast($$) );}
+        printf( "Comparacion menor o igual que: %g\n" , eval_ast($$) );}
     | expresion OP_GREATER_EQUAL expresion  {
         $$ = new_binop( ">=" , $1 , $3 );
-        printf( "Comparacion menor o igual que: %g" , eval_ast($$) );}
+        printf( "Comparacion menor o igual que: %g\n" , eval_ast($$) );}
     | expresion BOOL_AND expresion  {
         $$ = new_binop( "&&" , $1 , $3 );
-        printf( "Operacion AND: %g" ,eval_ast($$) ); }
+        printf( "Operacion AND: %g\n" ,eval_ast($$) ); }
     | expresion BOOL_OR expresion   {
         $$ = new_binop( "||" , $1 , $3 );
-        printf( "Operacion OR: %g" ,eval_ast($$) ); }
+        printf( "Operacion OR: %g\n" ,eval_ast($$) ); }
     ;
+
+if_statement:
+    expresion IF block SEQUENCE_SEPARATOR {
+        $$ = new_if($1, $3, NULL, NULL);
+        printf("[CONDICIONAL SIMPLE]\n");   }
+    | expresion IF block elif_chain SEQUENCE_SEPARATOR {
+        $$ = new_if($1, $3, $4, NULL);
+        printf("[CONDICIONAL CON ELSE_IF, NO ELSE]\n");   }
+    | expresion IF block else_part SEQUENCE_SEPARATOR   {
+        $$ = new_if($1, $3, NULL, $4);
+        printf("[CONDICIONAL CON ELSE, NO ELSE_IF]\n");}
+    | expresion IF block elif_chain else_part SEQUENCE_SEPARATOR   {
+        $$ = new_if($1, $3, $4, $5);
+        printf("[CONDICIONAL CON ELSE_IF Y ELSE]\n"); }
+    ;
+
+elif_chain:
+    ELSE_IF expresion IF block  {
+        $$ = new_elseif($2, $4, NULL);
+        printf("[ELSE_IF LAST - BRANCH]\n");}
+    | ELSE_IF expresion IF block elif_chain {
+        $$ = new_elseif($2, $4, $5);
+        printf("[ELSE_IF BRANCH]\n");}
+;
+
+else_part:
+    ELSE block  { $$ = $2; }
+;
+
 %%
 
 /* ============================

@@ -19,7 +19,10 @@ typedef enum {
     AST_BINOP,
     AST_UNOP,
     AST_ASSIGN,
-    AST_SEQUENCE
+    AST_SEQUENCE,
+    AST_IF,
+    AST_ELSEIF
+    AST_LOOP
 } ASTKind;
 
 /* Declaracion Adelantada de Nodo */
