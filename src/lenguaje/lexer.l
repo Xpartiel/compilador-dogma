@@ -79,7 +79,8 @@ COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 ":"         { return ELSE; }
 "{"         { return BEGIN_SEQUENCE; }
 "}"         { return END_SEQUENCE; }
-
+"("         { return PARENTESIS_OPEN; }
+")"         { return PARENTESIS_CLOSE; }
 
 "!"         { return BOOL_NOT; }
 "="         { return OP_EQUALS; }

@@ -45,9 +45,9 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 1 "parser.y"
+#line 32 "parser.y"
 
-    typedef struct ASTNode ASTNode;
+    #include "ast.h"
 
 #line 53 "parser.tab.h"
 
@@ -64,35 +64,37 @@ extern int yydebug;
     LIT_STRING = 259,              /* LIT_STRING  */
     ID = 260,                      /* ID  */
     ASSIGN = 261,                  /* ASSIGN  */
-    BEGIN_LOOP = 262,              /* BEGIN_LOOP  */
-    END_LOOP = 263,                /* END_LOOP  */
-    BREAK = 264,                   /* BREAK  */
-    CONTINUE = 265,                /* CONTINUE  */
-    RETURN_VALUE = 266,            /* RETURN_VALUE  */
-    RETURN_TYPE = 267,             /* RETURN_TYPE  */
-    IF = 268,                      /* IF  */
-    ELSE_IF = 269,                 /* ELSE_IF  */
-    ELSE = 270,                    /* ELSE  */
-    TYPE_DOUBLE = 271,             /* TYPE_DOUBLE  */
-    TYPE_FLOAT = 272,              /* TYPE_FLOAT  */
-    TYPE_INTEGER = 273,            /* TYPE_INTEGER  */
-    TYPE_STRING = 274,             /* TYPE_STRING  */
-    TYPE_BOOLEAN = 275,            /* TYPE_BOOLEAN  */
-    TYPE_LIST = 276,               /* TYPE_LIST  */
-    TYPE_ARRAY = 277,              /* TYPE_ARRAY  */
-    ERROR = 278,                   /* ERROR  */
-    BEGIN_SEQUENCE = 279,          /* BEGIN_SEQUENCE  */
-    SEQUENCE_SEPARATOR = 280,      /* SEQUENCE_SEPARATOR  */
-    END_SEQUENCE = 281,            /* END_SEQUENCE  */
-    OP_EQUALS = 282,               /* OP_EQUALS  */
-    OP_LESSER = 283,               /* OP_LESSER  */
-    OP_GREATER = 284,              /* OP_GREATER  */
-    OP_GREATER_EQUAL = 285,        /* OP_GREATER_EQUAL  */
-    OP_LESSER_EQUAL = 286,         /* OP_LESSER_EQUAL  */
-    BOOL_AND = 287,                /* BOOL_AND  */
-    BOOL_OR = 288,                 /* BOOL_OR  */
-    BOOL_NOT = 289,                /* BOOL_NOT  */
-    UMINUS = 290                   /* UMINUS  */
+    PARENTESIS_OPEN = 262,         /* PARENTESIS_OPEN  */
+    PARENTESIS_CLOSE = 263,        /* PARENTESIS_CLOSE  */
+    BEGIN_LOOP = 264,              /* BEGIN_LOOP  */
+    END_LOOP = 265,                /* END_LOOP  */
+    BREAK = 266,                   /* BREAK  */
+    CONTINUE = 267,                /* CONTINUE  */
+    RETURN_VALUE = 268,            /* RETURN_VALUE  */
+    RETURN_TYPE = 269,             /* RETURN_TYPE  */
+    IF = 270,                      /* IF  */
+    ELSE_IF = 271,                 /* ELSE_IF  */
+    ELSE = 272,                    /* ELSE  */
+    TYPE_DOUBLE = 273,             /* TYPE_DOUBLE  */
+    TYPE_FLOAT = 274,              /* TYPE_FLOAT  */
+    TYPE_INTEGER = 275,            /* TYPE_INTEGER  */
+    TYPE_STRING = 276,             /* TYPE_STRING  */
+    TYPE_BOOLEAN = 277,            /* TYPE_BOOLEAN  */
+    TYPE_LIST = 278,               /* TYPE_LIST  */
+    TYPE_ARRAY = 279,              /* TYPE_ARRAY  */
+    ERROR = 280,                   /* ERROR  */
+    BEGIN_SEQUENCE = 281,          /* BEGIN_SEQUENCE  */
+    SEQUENCE_SEPARATOR = 282,      /* SEQUENCE_SEPARATOR  */
+    END_SEQUENCE = 283,            /* END_SEQUENCE  */
+    OP_EQUALS = 284,               /* OP_EQUALS  */
+    OP_LESSER = 285,               /* OP_LESSER  */
+    OP_GREATER = 286,              /* OP_GREATER  */
+    OP_GREATER_EQUAL = 287,        /* OP_GREATER_EQUAL  */
+    OP_LESSER_EQUAL = 288,         /* OP_LESSER_EQUAL  */
+    BOOL_AND = 289,                /* BOOL_AND  */
+    BOOL_OR = 290,                 /* BOOL_OR  */
+    BOOL_NOT = 291,                /* BOOL_NOT  */
+    UMINUS = 292                   /* UMINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -101,7 +103,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 276 "parser.y"
+#line 37 "parser.y"
 
     double num;      /* NUMBER token */
     char* id;        /* ID token */
@@ -109,7 +111,7 @@ union YYSTYPE
     int boolean;     /* (opcional) si llegas a tener literales booleanos */
     ASTNode* node;   /* para no-terminales que producen AST */
 
-#line 113 "parser.tab.h"
+#line 115 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
