@@ -49,14 +49,15 @@ void yyerror(const char *s) {
 
 
 /* Tokens sin valor inmediato */
-%token ASSIGN PARENTESIS_OPEN PARENTESIS_CLOSE
+%token ASSIGN PARENTHESES_OPEN PARENTHESES_CLOSE
 %token BEGIN_LOOP END_LOOP BREAK CONTINUE RETURN_VALUE RETURN_TYPE
 %token IF ELSE_IF ELSE
 %token TYPE_DOUBLE TYPE_FLOAT TYPE_INTEGER TYPE_STRING TYPE_BOOLEAN TYPE_LIST TYPE_ARRAY
 %token ERROR
 
 %token BEGIN_SEQUENCE SEQUENCE_SEPARATOR END_SEQUENCE
-%token OP_EQUALS OP_LESSER OP_GREATER OP_GREATER_EQUAL OP_LESSER_EQUAL  // <=
+%token OP_EQUALS OP_LESSER OP_GREATER OP_GREATER_EQUAL OP_LESSER_EQUAL
+%token OP_PLUS OP_MINUS OP_TIMES OP_DIVIDE
 %token BOOL_AND BOOL_OR BOOL_NOT
 
 /* Precedencias */
@@ -65,9 +66,9 @@ void yyerror(const char *s) {
 %left  BOOL_OR
 %left  OP_EQUALS
 %left  OP_LESSER OP_GREATER OP_LESSER_EQUAL OP_GREATER_EQUAL
-%left  '+' '-'
-%left  '*' '/'
 %right UMINUS
+%left  OP_PLUS OP_MINUS
+%left  OP_TIMES OP_DIVIDE
 
 /* Tipo de no-terminales (ASTNode) */
 %type <node> program statement_list statement expresion
@@ -113,17 +114,24 @@ expresion:
     | ID    {
         $$ = new_identifier( $1 );
         printf( "Variable %s" , $1 ); }
-    | PARENTESIS_OPEN expresion PARENTESIS_CLOSE { $$ = $2; }
-    | expresion '+' expresion   {
+    | BOOL_NOT expresion    {
+        $$ = new_unop( "!" , $2 );
+        printf( "Negacion NOT: %g" , eval_ast($$) );}
+    | OP_MINUS expresion %prec UMINUS   {
+            $$ = new_unop("-", $2);
+            printf("Unario negativo aplicado: %g\n", eval_ast($$));
+        }
+    | PARENTHESES_OPEN expresion PARENTHESES_CLOSE { $$ = $2; }
+    | expresion OP_PLUS expresion   {
         $$ = new_binop( "+" , $1 , $3 );
         printf( "Suma resulta en: %g" , eval_ast($$) ); }
-    | expresion '-' expresion   {
+    | expresion OP_MINUS expresion   {
         $$ = new_binop( "-" , $1 , $3 );
         printf( "Resta resulta en: %g" , eval_ast($$) ); }
-    | expresion '*' expresion   {
+    | expresion OP_TIMES expresion   {
         $$ = new_binop( "*" , $1 , $3 );
-        printf( "Suma resulta en: %g" , eval_ast($$) ); }
-    | expresion '/' expresion   {
+        printf( "Producto resulta en: %g" , eval_ast($$) ); }
+    | expresion OP_DIVIDE expresion   {
         if( eval_ast($3) == 0.0 ){
             yyerror("division por 0");
             $$ = new_num(0.0);
@@ -131,23 +139,26 @@ expresion:
             $$ = new_binop( "/" , $1 , $3 );
             printf( "Division resulta en: %g" , eval_ast($$) ); }}
     | expresion OP_EQUALS expresion {
-        $$ = new_binop( "=" , $1 , $3 ); }
+        $$ = new_binop( "=" , $1 , $3 );
+        printf( "Comparacion de Igualdad: %g" , eval_ast($$) );}
     | expresion OP_LESSER expresion {
-        $$ = new_binop( "<" , $1 , $3 ); }
+        $$ = new_binop( "<" , $1 , $3 );
+        printf( "Comparacion menor que: %g" , eval_ast($$) );}
     | expresion OP_GREATER expresion    {
-        $$ = new_binop( ">" , $1 , $3 ); }
+        $$ = new_binop( ">" , $1 , $3 );
+        printf( "Comparacion mayor que: %g" , eval_ast($$) );}
     | expresion OP_LESSER_EQUAL expresion   {
-        $$ = new_binop( "<=" , $1 , $3 ); }
+        $$ = new_binop( "<=" , $1 , $3 );
+        printf( "Comparacion menor o igual que: %g" , eval_ast($$) );}
     | expresion OP_GREATER_EQUAL expresion  {
-        $$ = new_binop( ">=" , $1 , $3 ); }
+        $$ = new_binop( ">=" , $1 , $3 );
+        printf( "Comparacion menor o igual que: %g" , eval_ast($$) );}
     | expresion BOOL_AND expresion  {
-        $$ = new_binop( "&&" , $1 , $3 ); }
+        $$ = new_binop( "&&" , $1 , $3 );
+        printf( "Operacion AND: %g" ,eval_ast($$) ); }
     | expresion BOOL_OR expresion   {
-        $$ = new_binop( "||" , $1 , $3 ); }
-    | BOOL_NOT expresion    {
-        $$ = new_unop( "!" , $2 ); }
-    | '-' expresion %prec UMINUS    {
-        $$ = new_unop( "neg" , $2); }
+        $$ = new_binop( "||" , $1 , $3 );
+        printf( "Operacion OR: %g" ,eval_ast($$) ); }
     ;
 %%
 
@@ -156,7 +167,7 @@ expresion:
    ============================ */
 
 int main(int argc, char** argv){
-    printf("Parser AST - inicia. Introduce sentencias terminadas en ';'\\n");
+    printf("Parser AST - inicia. Introduce sentencias terminadas en ';'\n");
     yyparse();
     return 0;
 }

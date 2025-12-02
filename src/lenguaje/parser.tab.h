@@ -64,8 +64,8 @@ extern int yydebug;
     LIT_STRING = 259,              /* LIT_STRING  */
     ID = 260,                      /* ID  */
     ASSIGN = 261,                  /* ASSIGN  */
-    PARENTESIS_OPEN = 262,         /* PARENTESIS_OPEN  */
-    PARENTESIS_CLOSE = 263,        /* PARENTESIS_CLOSE  */
+    PARENTHESES_OPEN = 262,        /* PARENTHESES_OPEN  */
+    PARENTHESES_CLOSE = 263,       /* PARENTHESES_CLOSE  */
     BEGIN_LOOP = 264,              /* BEGIN_LOOP  */
     END_LOOP = 265,                /* END_LOOP  */
     BREAK = 266,                   /* BREAK  */
@@ -91,10 +91,14 @@ extern int yydebug;
     OP_GREATER = 286,              /* OP_GREATER  */
     OP_GREATER_EQUAL = 287,        /* OP_GREATER_EQUAL  */
     OP_LESSER_EQUAL = 288,         /* OP_LESSER_EQUAL  */
-    BOOL_AND = 289,                /* BOOL_AND  */
-    BOOL_OR = 290,                 /* BOOL_OR  */
-    BOOL_NOT = 291,                /* BOOL_NOT  */
-    UMINUS = 292                   /* UMINUS  */
+    OP_PLUS = 289,                 /* OP_PLUS  */
+    OP_MINUS = 290,                /* OP_MINUS  */
+    OP_TIMES = 291,                /* OP_TIMES  */
+    OP_DIVIDE = 292,               /* OP_DIVIDE  */
+    BOOL_AND = 293,                /* BOOL_AND  */
+    BOOL_OR = 294,                 /* BOOL_OR  */
+    BOOL_NOT = 295,                /* BOOL_NOT  */
+    UMINUS = 296                   /* UMINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -111,7 +115,7 @@ union YYSTYPE
     int boolean;     /* (opcional) si llegas a tener literales booleanos */
     ASTNode* node;   /* para no-terminales que producen AST */
 
-#line 115 "parser.tab.h"
+#line 119 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

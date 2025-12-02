@@ -220,25 +220,49 @@ double eval_ast(ASTNode* n){
         }
         case AST_UNOP: {
             double v = eval_ast(n->unop.expr);
-            if(strcmp(n->unop.op, "-") == 0) return -v;
-            if(strcmp(n->unop.op, "!") == 0) return (v == 0.0) ? 1.0 : 0.0;
-            return 0.0;
+            
+            if(strcmp(  n->unop.op, "-") == 0){
+                return -v;
+            }else if(strcmp(n->unop.op, "!") == 0){
+                return (v == 0.0) ? 1.0 : 0.0;
+            }else{
+                printf("WARNING: Operacion unaria \"%s\" no reconocida",n->unop.op);
+                return 0.0;
+            }
         }
         case AST_BINOP: {
             double L = eval_ast(n->binop.left);
             double R = eval_ast(n->binop.right);
             const char* op = n->binop.op;
-            if(strcmp(op, "+") == 0) return L + R;
-            if(strcmp(op, "-") == 0) return L - R;
-            if(strcmp(op, "*") == 0) return L * R;
-            if(strcmp(op, "/") == 0) { if(R == 0.0) { printf("division por cero"); return 0.0; } return L / R; }
-            if(strcmp(op, "=") == 0) return (L == R) ? 1.0 : 0.0;
-            if(strcmp(op, "<") == 0) return (L < R) ? 1.0 : 0.0;
-            if(strcmp(op, ">") == 0) return (L > R) ? 1.0 : 0.0;
-            if(strcmp(op, "<=") == 0) return (L <= R) ? 1.0 : 0.0;
-            if(strcmp(op, ">=") == 0) return (L >= R) ? 1.0 : 0.0;
-            if(strcmp(op, "&&") == 0) return ( (L!=0.0) && (R!=0.0) ) ? 1.0 : 0.0;
-            if(strcmp(op, "||") == 0) return ( (L!=0.0) || (R!=0.0) ) ? 1.0 : 0.0;
+            if(strcmp(op, "+") == 0){
+                return L + R;
+            }else if(strcmp(op, "-") == 0){
+                return L - R;
+            } else if(strcmp(op, "*") == 0){
+                return L * R;
+            } else if(strcmp(op, "/") == 0){
+                if(R == 0.0){
+                    printf("division por cero");
+                    return 0.0;
+                }
+                return L / R;
+            } else if(strcmp(op, "=") == 0){
+                return (L == R) ? 1.0 : 0.0;
+            }else if(strcmp(op, "<") == 0){
+                return (L < R) ? 1.0 : 0.0;
+            }else if(strcmp(op, ">") == 0){
+                return (L > R) ? 1.0 : 0.0;
+            }else if(strcmp(op, "<=") == 0){
+                return (L <= R) ? 1.0 : 0.0;
+            }else if(strcmp(op, ">=") == 0){
+                return (L >= R) ? 1.0 : 0.0;
+            }else if(strcmp(op, "&&") == 0){
+                return ( (L!=0.0) && (R!=0.0) ) ? 1.0 : 0.0;
+            }else  if(strcmp(op, "||") == 0){
+                return ( (L!=0.0) || (R!=0.0) ) ? 1.0 : 0.0;
+            }else{
+                printf("Operador Binario \"%s\" no reconocido",op);
+            }
             return 0.0;
         }
         default:

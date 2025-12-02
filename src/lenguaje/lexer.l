@@ -13,12 +13,12 @@
 extern YYSTYPE yylval;
 %}
 
+
 /* regex */
 DIGIT       [0-9]
 LETTER      [a-zA-Z]
 ID          {LETTER}({LETTER}|{DIGIT})*
 NUMBER      {DIGIT}+(\.{DIGIT}+)?
-OPERATOR    [+\-*/]
 COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 
 %%
@@ -27,23 +27,21 @@ COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 {NUMBER}    { yylval.num = atof(yytext); return NUMBER; }
 {ID}        { yylval.id = strdup(yytext); return ID; }
 
+"+"         { return OP_PLUS; }
+"-"         { return OP_MINUS; }
+"*"         { return OP_TIMES; }
+"/"         { return OP_DIVIDE; }
+
+"("         { return PARENTHESES_OPEN; }
+")"         { return PARENTHESES_CLOSE; }
+
 \"([^"\\]|\\.)*\" {
     
     int len = yyleng;
-
-    
-    char *contenido = (char*) malloc(len - 1); 
-    
-
-    
+    char *contenido = (char*) malloc(len - 1);
     strncpy(contenido, yytext + 1, len - 2);
-
-    
     contenido[len - 2] = '\0';
-
-    
     yylval.str = contenido;
-
     return LIT_STRING;
 }
 
@@ -53,7 +51,6 @@ COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 
 "<="        { return OP_LESSER_EQUAL; }
 ">="        { return OP_GREATER_EQUAL; }
-
 
 "<-"        { return ASSIGN; }
 "<<"        { return BEGIN_LOOP; }
@@ -70,7 +67,7 @@ COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 "#."        { return TYPE_FLOAT; }  /* float */
 "#"         { return TYPE_INTEGER; }    /* int */
 "@"         { return TYPE_STRING; } /* string */
-"\?'"       { return TYPE_BOOLEAN; }    /* bool */
+"?'"       { return TYPE_BOOLEAN; }    /* bool */
 "\[>\]"       { return TYPE_LIST; } /* list */
 "\[\]"        { return TYPE_ARRAY; }    /* array */
 
@@ -79,18 +76,14 @@ COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 ":"         { return ELSE; }
 "{"         { return BEGIN_SEQUENCE; }
 "}"         { return END_SEQUENCE; }
-"("         { return PARENTESIS_OPEN; }
-")"         { return PARENTESIS_CLOSE; }
 
 "!"         { return BOOL_NOT; }
+">"         { return OP_GREATER;}
 "="         { return OP_EQUALS; }
 "<"         { return OP_LESSER; }
-">"         { return OP_GREATER;}
 
 \n          { /* return '\n'; */ }
 \r          { /* ignorar */ }
-
-{OPERATOR}  { /* dejamos esto por compatibilidad si se usa; pero preferimos literales */ return yytext[0]; }
 
 .           { fprintf(stderr, "Error léxico: caracter inesperado '%s'\n", yytext); return ERROR; }
 %%
