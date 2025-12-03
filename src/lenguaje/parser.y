@@ -71,7 +71,7 @@ void yyerror(const char *s) {
 %left  OP_TIMES OP_DIVIDE
 
 /* Tipo de no-terminales (ASTNode) */
-%type <node> program statement_list statement expresion
+%type <node> program statement_list statement expresion block if_statement elif_chain else_part loop_expr
 
 /* Símbolo inicial */
 %start program
@@ -89,12 +89,14 @@ program:
     ;
 
 statement_list:
-    statement  { $$ = new_sequence(); sequence_add( $$ , $2 ); }
+    statement  { $$ = new_sequence(); sequence_add( $$ , $1 ); }
     | statement_list statement { sequence_add( $1 , $2 ); $$ = $1; }
     ;
 
 block:
-    BEGIN_SEQUENCE statement_list END_SEQUENCE  { $$ = $2; }
+    BEGIN_SEQUENCE statement_list END_SEQUENCE  {
+        $$ = $2;
+        printf("[CODE BLOCK]\n");}
 
 statement:
     expresion SEQUENCE_SEPARATOR    { $$ = $1; }
@@ -106,6 +108,7 @@ statement:
             $$ = node;
         }
     | if_statement  { $$ = $1; }
+    | loop_expr     { $$ = $1; }
     ;
 
 expresion:
@@ -168,30 +171,39 @@ expresion:
 if_statement:
     expresion IF block SEQUENCE_SEPARATOR {
         $$ = new_if($1, $3, NULL, NULL);
-        printf("[CONDICIONAL SIMPLE]\n");   }
+        printf("[SIMPLE CONDITIONAL]\n");   }
     | expresion IF block elif_chain SEQUENCE_SEPARATOR {
         $$ = new_if($1, $3, $4, NULL);
-        printf("[CONDICIONAL CON ELSE_IF, NO ELSE]\n");   }
+        printf("[ELSE_IF CONDITIONAL]\n");  }
     | expresion IF block else_part SEQUENCE_SEPARATOR   {
         $$ = new_if($1, $3, NULL, $4);
-        printf("[CONDICIONAL CON ELSE, NO ELSE_IF]\n");}
+        printf("[ELSE CONDICIONAL]\n"); }
     | expresion IF block elif_chain else_part SEQUENCE_SEPARATOR   {
         $$ = new_if($1, $3, $4, $5);
-        printf("[CONDICIONAL CON ELSE_IF Y ELSE]\n"); }
+        printf("[ELSE_IF & ELSE CONDICIONAL ]\n");  }
     ;
 
 elif_chain:
     ELSE_IF expresion IF block  {
         $$ = new_elseif($2, $4, NULL);
-        printf("[ELSE_IF LAST - BRANCH]\n");}
+        printf("[LAST ELSE_IF-BRANCH]\n");  }
     | ELSE_IF expresion IF block elif_chain {
         $$ = new_elseif($2, $4, $5);
-        printf("[ELSE_IF BRANCH]\n");}
-;
+        printf("[ELSE_IF BRANCH]\n");   }
+    ;
 
 else_part:
-    ELSE block  { $$ = $2; }
-;
+    ELSE block  {
+        $$ = $2;
+        printf("[ELSE BRANCH]\n");
+    }
+    ;
+
+loop_expr:
+    BEGIN_LOOP statement_list END_LOOP SEQUENCE_SEPARATOR   {
+        $$ = new_loop($2);
+        printf("El loop se asigno correctamente %g",eval_ast($$));  }
+    ;
 
 %%
 

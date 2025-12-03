@@ -21,7 +21,7 @@ typedef enum {
     AST_ASSIGN,
     AST_SEQUENCE,
     AST_IF,
-    AST_ELSEIF
+    AST_ELSEIF,
     AST_LOOP
 } ASTKind;
 
@@ -39,6 +39,9 @@ ASTNode *new_binop( char *, ASTNode *, ASTNode *);
 ASTNode *new_unop( char *, ASTNode *);
 ASTNode *new_assign(char *, ASTNode *);
 ASTNode *new_sequence();
+ASTNode *new_if(ASTNode * , ASTNode * , ASTNode * , ASTNode * );
+ASTNode *new_elseif(ASTNode * ,ASTNode * ,ASTNode * );
+ASTNode *new_loop(ASTNode *);
 void    sequence_add(ASTNode *, ASTNode *);
 double  eval_ast( ASTNode * );
 double  obtener( char * );

@@ -41,28 +41,31 @@ void guardar( char* id , double val ){
 }
 
 
-
 typedef struct {
     char op[4];
     ASTNode *left;
     ASTNode *right;
 } AST_BinOp;
 
+
 typedef struct {
     char op[4];
     ASTNode *expr;
 } AST_UnOp;
+
 
 typedef struct {
     char *name;
     ASTNode *value;
 } AST_Assign;
 
+
 typedef struct {
     ASTNode** list;
     int count;
     int cap;
 } AST_Sequence;
+
 
 typedef struct {
     ASTNode* condition; // obligatorio
@@ -71,11 +74,16 @@ typedef struct {
     ASTNode* else_branch;   // null si no hay rama elses
 } AST_If;
 
+
 typedef struct {
     ASTNode* condition; // obligatrio
     ASTNode* branch;    // then, oblgatorio
     ASTNode* next;  // branch chaining, null si es el ultimo else-if
 } AST_ElseIf ;
+
+typedef struct {
+    ASTNode *body;
+}AST_Loop;
 
 struct ASTNode {
     ASTKind kind;
@@ -89,6 +97,8 @@ struct ASTNode {
         AST_Assign assign;
         AST_Sequence sequence;
         AST_If conditional;
+        AST_ElseIf chained_conditional;
+        AST_Loop loop_type;
     };
 };
 
@@ -164,28 +174,34 @@ ASTNode *new_sequence(){
 ASTNode* new_if(ASTNode* cond,
                 ASTNode* if_branch,
                 ASTNode* elseif_list,
-                ASTNode* else_branch)
-{
+                ASTNode* else_branch){
     ASTNode *n = malloc(sizeof(ASTNode));
-    n->type = AST_IF;
-    n->ifs.condition = cond;
-    n->ifs.if_branch = if_branch;
-    n->ifs.elseif_list = elseif_list;
-    n->ifs.else_branch = else_branch;
+    n->kind = AST_IF;
+    n->conditional.condition = cond;
+    n->conditional.if_branch = if_branch;
+    n->conditional.elif_list = elseif_list;
+    n->conditional.else_branch = else_branch;
     return n;
 }
 
 ASTNode* new_elseif(ASTNode* cond,
                     ASTNode* branch,
-                    ASTNode* next)
-{
+                    ASTNode* next){
     ASTNode *n = malloc(sizeof(ASTNode));
-    n->type = AST_ELSEIF;
-    n->elseifnode.condition = cond;
-    n->elseifnode.branch = branch;
-    n->elseifnode.next = next;
+    n->kind = AST_ELSEIF;
+    n->chained_conditional.condition = cond;
+    n->chained_conditional.branch = branch;
+    n->chained_conditional.next = next;
     return n;
 }
+
+ASTNode* new_loop(ASTNode* body) {
+    ASTNode* n = malloc(sizeof(ASTNode));
+    n->kind = AST_LOOP;
+    n->loop_type.body = body;
+    return n;
+}
+
 
 
 void sequence_add(ASTNode *seq, ASTNode *elem){
@@ -216,20 +232,27 @@ void free_ast(ASTNode* n){
             free(n->assign.name);
             free_ast(n->assign.value);
             break;
-        /*
         case AST_IF:
-            free_ast(n->if_stmt.cond);
-            free_ast(n->if_stmt.then_branch);
-            free_ast(n->if_stmt.else_branch);
+            free_ast(n->conditional.condition);
+            free_ast(n->conditional.if_branch);
+            free_ast(n->conditional.elif_list);
+            free_ast(n->conditional.else_branch);
             break;
+        case AST_ELSEIF:
+            free_ast(n->chained_conditional.condition);
+            free_ast(n->chained_conditional.branch);
+            free_ast(n->chained_conditional.next);
+            break;
+
+        
         case AST_LOOP:
-            free_ast(n->loop_stmt.cond);
-            free_ast(n->loop_stmt.body);
+            free_ast(n->loop_type.body);
             break;
+        /*
         case AST_RETURN:
             free_ast(n->ret.value);
             break;
-        */
+        
         case AST_SEQUENCE:
             /* Si implementas secuencias con listas, liberarlas aquí */
             break;
@@ -244,6 +267,7 @@ double eval_ast(ASTNode* n){
     if(!n) return 0.0;
     switch(n->kind){
         case AST_NUMBER:
+            printf("Evaluando numero\n");
             return n->num;
 
         case AST_STRING:
@@ -305,6 +329,29 @@ double eval_ast(ASTNode* n){
             }
             return 0.0;
         }
+        case AST_IF:
+            double c = eval_ast(n->conditional.condition);
+            if(c != 0){
+                return eval_ast(n->conditional.if_branch);
+            }
+            ASTNode* eif = n->conditional.elif_list;
+            while(eif != NULL) {
+                if(eval_ast(eif->chained_conditional.condition)) {
+                    return eval_ast(eif->chained_conditional.branch);
+                }
+                eif = eif->chained_conditional.next;
+            }
+            if(n->conditional.else_branch != NULL)
+                return eval_ast(n->conditional.else_branch);
+            return 0;
+        case AST_LOOP{
+            /* while(1){ // REAL */ 
+            for(int i=0; i<100; i++){ // TESTING */
+                eval_ast(n->loop_type.body);
+            }
+            return 0.0;
+        }:
+            
         default:
             return 0.0;
     }
