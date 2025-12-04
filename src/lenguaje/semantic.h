@@ -8,7 +8,6 @@ extern int sem_errors;
 extern int sem_warnings;
 
 /*Tipos semanticos*/
-/*No se si vamos a agregar más*/
 typedef enum {
     S_TYPE_ERROR = -1,
     S_TYPE_INT,
@@ -25,6 +24,10 @@ typedef enum {
     struct con los siguientes atributos:
     -   name: nombre del simbolo.
     -   type: tipo del simbolo (ya especificados en el enum anterior)
+    -   is_function:
+    -   params:
+    -   return_type:
+    -   type_reference: 
 */
 typedef struct {
     char *name;
@@ -50,7 +53,7 @@ void sem_exit_scope(void);
 
 /*agrega el símbolo en el scope actual (falla si ya existe en dicho scope) */
 int sem_add_symbol(const char *name, SType type , Type * type_reference );
-
+/* Tal y como puede agregrse un imbolo al scope, tambien una funcion */
 int sem_add_function( const char * name , ASTNode ** params , int param_count , SType return_type , Type * return_type_reference );
 
 /*busqueda de un simbolo (desde scope actual hacia afuera), retorna NULL si no existe */
