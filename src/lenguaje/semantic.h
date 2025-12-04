@@ -2,15 +2,23 @@
 #define SEMANTIC_H
 
 #include "ast.h"
+#include "type.h"
+
+extern int sem_errors;
+extern int sem_warnings;
 
 /*Tipos semanticos*/
 /*No se si vamos a agregar más*/
 typedef enum {
     S_TYPE_ERROR = -1,
+    S_TYPE_INT,
+    S_TYPE_FLOAT,
     S_TYPE_DOUBLE,
     S_TYPE_STRING,
     S_TYPE_BOOL,
-    S_TYPE_VOID
+    S_TYPE_VOID,
+    S_TYPE_ARRAY,
+    S_TYPE_LIST
 } SType;
 
 /*Struct Symbol
@@ -22,6 +30,11 @@ typedef struct {
     char *name;
     SType type;
     int declared_scope_level; /* para debug */
+    int is_function;
+    ASTNode **params;
+    int param_count;
+    SType return_type;
+    Type *type_reference;
 } Symbol;
 
 /*Funciones principales para el analizador semantico*/
@@ -36,7 +49,9 @@ void sem_enter_scope(void);
 void sem_exit_scope(void);
 
 /*agrega el símbolo en el scope actual (falla si ya existe en dicho scope) */
-int sem_add_symbol(const char *name, SType type);
+int sem_add_symbol(const char *name, SType type , Type * type_reference );
+
+int sem_add_function( const char * name , ASTNode ** params , int param_count , SType return_type , Type * return_type_reference );
 
 /*busqueda de un simbolo (desde scope actual hacia afuera), retorna NULL si no existe */
 Symbol *sem_lookup(const char *name);

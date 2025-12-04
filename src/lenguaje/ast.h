@@ -8,6 +8,9 @@
    =========================================== */
 
 
+/* Declaracion Adelantada de Nodo */
+typedef struct ASTNode ASTNode;
+
 /* ----------------------------------
     Enumeracion de tipos de nodos AST
    ----------------------------------- */
@@ -34,8 +37,129 @@ typedef enum {
     AST_FUNCTION_CALL
 } ASTKind;
 
-/* Declaracion Adelantada de Nodo */
-typedef struct ASTNode ASTNode;
+
+typedef struct {
+    char op[4];
+    ASTNode *left;
+    ASTNode *right;
+} AST_BinOp;
+
+
+typedef struct {
+    char op[4];
+    ASTNode *expr;
+} AST_UnOp;
+
+
+typedef struct {
+    char *name;
+    ASTNode *value;
+} AST_Assign;
+
+typedef struct {
+    char *name;
+    Type *type;
+    ASTNode *init;
+} AST_Declaration;
+
+typedef struct {
+    ASTNode** list;
+    int count;
+    int cap;
+} AST_Sequence;
+
+
+typedef struct {
+    ASTNode* condition; // obligatorio
+    ASTNode* if_branch; // obligatorio
+    ASTNode* elif_list; // null si no hay else-if
+    ASTNode* else_branch;   // null si no hay rama elses
+} AST_If;
+
+
+typedef struct {
+    ASTNode* condition; // obligatrio
+    ASTNode* branch;    // then, oblgatorio
+    ASTNode* next;  // branch chaining, null si es el ultimo else-if
+} AST_ElseIf ;
+
+
+typedef struct {
+    ASTNode *body;
+}AST_Loop;
+
+
+typedef struct{
+    Type *type;
+    ASTNode *size_expr;
+} AST_Array;
+
+typedef struct{
+    ASTNode ** elements;
+    int count;
+    int cap;
+} AST_InitDataStructure;
+
+typedef struct{
+    Type *type;
+    ASTNode *size_expr;
+} AST_List;
+
+typedef struct {
+    ASTNode *value;
+} AST_Return;
+
+typedef struct {
+     int dummy;
+} AST_Break;
+
+typedef struct {
+    int dummy;
+} AST_Continue;
+
+
+typedef struct {
+    char *name; // nombre de la función
+    ASTNode **params;    // lista de parámetros (AST_SEQUENCE de declaraciones)
+    int param_count;
+    Type *return_type;  // tipo declarado: T_integer, T_boolean, etc.
+    ASTNode *body;       // bloque { }
+} AST_FunctionDecl;
+
+typedef struct {
+    char *name; // nombre de la función a ejecutar
+    ASTNode **args;       // lista de expresiones (AST_SEQUENCE)
+    int arg_count;
+} AST_FunctionCall;
+
+
+struct ASTNode {
+    ASTKind kind;
+    union {
+        double num;
+        char *str;
+        int boolean;
+        char *id;
+        AST_BinOp binop;
+        AST_UnOp unop;
+        AST_Assign assign;
+        AST_Declaration declaration;
+        AST_Sequence sequence;
+        AST_If conditional;
+        AST_ElseIf chained_conditional;
+        AST_Loop loop_type;
+        AST_Array array;
+        AST_List list;
+        AST_InitDataStructure initializator;
+        AST_Return result;
+        AST_Continue continuing;
+        AST_Break breaking;
+        AST_FunctionDecl function_declaration;
+        AST_FunctionCall function_call;
+    };
+};
+
+
 
 int sequence_length( ASTNode * seq );
 ASTNode **sequence_to_array( ASTNode *seq );

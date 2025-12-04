@@ -5,12 +5,13 @@
 %{
 #include "ast.h"
 #include "type.h"
+#include "semantic.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 
-
+ASTNode *root = NULL;
 
 /* Forward del lexer */
 int yylex(void);
@@ -33,6 +34,7 @@ void yyerror(const char *s) {
 %code requires {
     #include "ast.h"
     #include "type.h"
+    #include "semantic.h"
 }
 
 
@@ -77,7 +79,7 @@ void yyerror(const char *s) {
 %type <node> program statement_list statement expresion block if_statement elif_chain else_part
 %type <node> loop_expr var_declaration init_data_structure list_item return_expr continue_expr break_expr
 %type <node> function_call fun_declaration optional_arg_list arg_list param_list param_decl  
-%type <node> optional_param_list var_init
+%type <node> optional_param_list var_init assign_expr
 %type <type> type
 
 /* Símbolo inicial */
@@ -91,8 +93,9 @@ void yyerror(const char *s) {
    ============================ */
 
 program:
-    /* vacío */     { $$ = new_sequence(); }
-    | statement_list    { $$ = $1; }
+    /* vacío */     {
+        root = new_sequence(); }
+    | statement_list    { root = $1; }
     ;
 
 statement_list:
@@ -126,15 +129,15 @@ return_expr:
 
 statement:
     fun_declaration   { $$ = $1; }
-    | expresion SEQUENCE_SEPARATOR    { $$ = $1; }
+    | expresion SEQUENCE_SEPARATOR  { $$ = $1; }
     | return_expr   { $$ = $1; }
     | continue_expr { $$ = $1; }
     | break_expr    { $$ = $1; }
+    | assign_expr SEQUENCE_SEPARATOR    { $$ = $1; }
     | var_declaration   { $$ = $1; }
     | if_statement  { $$ = $1; }
     | loop_expr     { $$ = $1; }
     | block { $$ = $1; }
-    
     ;
 
 expresion:
@@ -268,11 +271,15 @@ type:
 var_init:
       /* vacío */ { $$ = NULL; }
     | ASSIGN expresion  {
-        /* asignación normal */
+        /* <- expr asignación normal */
         $$ = $2; }
     | ASSIGN init_data_structure {
         /* array/lista con inicialización */
         $$ = $2; }
+    ;
+
+assign_expr:
+    ID ASSIGN expresion { $$ = new_assign( $1 , $3 ); }
     ;
 
 /*
@@ -370,5 +377,20 @@ function_call:
 int main(int argc, char** argv){
     printf("Parser AST - inicia. Introduce sentencias terminadas en ';'\n");
     yyparse();
+
+    if( !root ){
+        printf("No se generó AST.\n");
+        return 1;
+    }
+
+    // 2. ANALISIS SEMANTICO
+    sem_init();
+    sem_check_program(root);
+
+    if (sem_errors > 0) {
+        printf("Errores semánticos: el código intermedio NO se generará.\n");
+        return 1;
+    }
+
     return 0;
 }
