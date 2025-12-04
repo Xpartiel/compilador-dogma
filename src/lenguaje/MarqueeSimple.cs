@@ -142,7 +142,7 @@ Supone las funciones runtime: read_line, clear_matrix, set_pixel, refresh_displa
     # len <- strlen(msg);
     # x <- offset_local;
     << /* bucle while simulacro (infinito con break) */
-        ? ( i >= len ) { break; };
+        ( i >= len ) ? { !!; };
         @ ch <- substr(msg, i, 1);
         draw_char(ch, x, 0);   /* alineado en y=0 */
         x <- x + 4;
@@ -188,4 +188,5 @@ Supone las funciones runtime: read_line, clear_matrix, set_pixel, refresh_displa
 
 
 >> ; /* END_LOOP SEQUENCE_SEPARATOR */
+
 
