@@ -45,11 +45,12 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 32 "parser.y"
+#line 33 "parser.y"
 
     #include "ast.h"
+    #include "type.h"
 
-#line 53 "parser.tab.h"
+#line 54 "parser.tab.h"
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
@@ -83,22 +84,23 @@ extern int yydebug;
     TYPE_LIST = 278,               /* TYPE_LIST  */
     TYPE_ARRAY = 279,              /* TYPE_ARRAY  */
     ERROR = 280,                   /* ERROR  */
-    BEGIN_SEQUENCE = 281,          /* BEGIN_SEQUENCE  */
-    SEQUENCE_SEPARATOR = 282,      /* SEQUENCE_SEPARATOR  */
-    END_SEQUENCE = 283,            /* END_SEQUENCE  */
-    OP_EQUALS = 284,               /* OP_EQUALS  */
-    OP_LESSER = 285,               /* OP_LESSER  */
-    OP_GREATER = 286,              /* OP_GREATER  */
-    OP_GREATER_EQUAL = 287,        /* OP_GREATER_EQUAL  */
-    OP_LESSER_EQUAL = 288,         /* OP_LESSER_EQUAL  */
-    OP_PLUS = 289,                 /* OP_PLUS  */
-    OP_MINUS = 290,                /* OP_MINUS  */
-    OP_TIMES = 291,                /* OP_TIMES  */
-    OP_DIVIDE = 292,               /* OP_DIVIDE  */
-    BOOL_AND = 293,                /* BOOL_AND  */
-    BOOL_OR = 294,                 /* BOOL_OR  */
-    BOOL_NOT = 295,                /* BOOL_NOT  */
-    UMINUS = 296                   /* UMINUS  */
+    LIST_SEPARATOR = 281,          /* LIST_SEPARATOR  */
+    BEGIN_SEQUENCE = 282,          /* BEGIN_SEQUENCE  */
+    SEQUENCE_SEPARATOR = 283,      /* SEQUENCE_SEPARATOR  */
+    END_SEQUENCE = 284,            /* END_SEQUENCE  */
+    OP_EQUALS = 285,               /* OP_EQUALS  */
+    OP_LESSER = 286,               /* OP_LESSER  */
+    OP_GREATER = 287,              /* OP_GREATER  */
+    OP_GREATER_EQUAL = 288,        /* OP_GREATER_EQUAL  */
+    OP_LESSER_EQUAL = 289,         /* OP_LESSER_EQUAL  */
+    OP_PLUS = 290,                 /* OP_PLUS  */
+    OP_MINUS = 291,                /* OP_MINUS  */
+    OP_TIMES = 292,                /* OP_TIMES  */
+    OP_DIVIDE = 293,               /* OP_DIVIDE  */
+    BOOL_AND = 294,                /* BOOL_AND  */
+    BOOL_OR = 295,                 /* BOOL_OR  */
+    BOOL_NOT = 296,                /* BOOL_NOT  */
+    UMINUS = 297                   /* UMINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -107,15 +109,16 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 37 "parser.y"
+#line 39 "parser.y"
 
-    double num;      /* NUMBER token */
-    char* id;        /* ID token */
-    char* str;       /* LIT_STRING token */
-    int boolean;     /* (opcional) si llegas a tener literales booleanos */
-    ASTNode* node;   /* para no-terminales que producen AST */
+    double num; /* NUMBER token */
+    char* id;   /* ID token */
+    char* str;  /* LIT_STRING token */
+    int boolean;
+    ASTNode* node;  /* para no-terminales que producen AST */
+    Type* type;     /* identificador de tipos */
 
-#line 119 "parser.tab.h"
+#line 122 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -68,14 +68,15 @@ COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 "#"         { return TYPE_INTEGER; }    /* int */
 "@"         { return TYPE_STRING; } /* string */
 "?'"       { return TYPE_BOOLEAN; }    /* bool */
-"\[>\]"       { return TYPE_LIST; } /* list */
-"\[\]"        { return TYPE_ARRAY; }    /* array */
+"[>]"       { return TYPE_LIST; } /* list */
+"[]"        { return TYPE_ARRAY; }    /* array */
 
 "?"         { return IF; }
 ";"         { return SEQUENCE_SEPARATOR; }
 ":"         { return ELSE; }
 "{"         { return BEGIN_SEQUENCE; }
 "}"         { return END_SEQUENCE; }
+","         { return LIST_SEPARATOR; }
 
 "!"         { return BOOL_NOT; }
 ">"         { return OP_GREATER;}
