@@ -111,8 +111,7 @@ statement_list:
 /* { codigo } */
 block:
     BEGIN_SEQUENCE statement_list END_SEQUENCE  {
-        $$ = $2;
-        printf("[CODE BLOCK]\n");}
+        $$ = $2; }
     ;
 
 continue_expr:
@@ -142,59 +141,43 @@ statement:
 
 expresion:
     NUMBER  {
-        $$ = new_num( $1 );
-        printf("[Numero]: %g\n", $1); }
+        $$ = new_num( $1 );  }
     | LIT_STRING    {
-        $$ = new_string( $1 );
-        printf("String reconocida: %s\n" , $1 ); }
+        $$ = new_string( $1 ); }
     | ID    {
-        $$ = new_identifier( $1 );
-        printf( "Variable %s" , $1 );/*TODO REMOVE*/ }
+        $$ = new_identifier( $1 ); }
     | BOOL_NOT expresion    {
-        $$ = new_unop( "!" , $2 );
-        printf( "Negacion NOT: %g" , eval_ast($$) );/*TODO REMOVE*/}
+        $$ = new_unop( "!" , $2 ); }
     | OP_MINUS expresion %prec UMINUS   {
-        $$ = new_unop("-", $2);
-        printf("Unario negativo aplicado: %g\n", eval_ast($$));/*TODO REMOVE*/ }
+        $$ = new_unop("-", $2); }
     | PARENTHESES_OPEN expresion PARENTHESES_CLOSE {
         $$ = $2; }
     | expresion OP_PLUS expresion   {
-        $$ = new_binop( "+" , $1 , $3 );
-        printf( "Suma resulta en: %g\n" , eval_ast($$) ); /*TODO REMOVE*/ }
+        $$ = new_binop( "+" , $1 , $3 ); }
     | expresion OP_MINUS expresion  {
-        $$ = new_binop( "-" , $1 , $3 );
-        printf( "Resta resulta en: %g\n" , eval_ast($$) ); /*TODO REMOVE*/ }
+        $$ = new_binop( "-" , $1 , $3 ); }
     | expresion OP_TIMES expresion   {
-        $$ = new_binop( "*" , $1 , $3 );
-        printf( "Producto resulta en: %g\n" , eval_ast($$) );/*TODO REMOVE*/ }
+        $$ = new_binop( "*" , $1 , $3 );  }
     | expresion OP_DIVIDE expresion   {
         if( eval_ast($3) == 0.0 ){
             yyerror("division por 0"); /* // TODO REMOVE*/
             $$ = new_num(0.0);
         }else{
-            $$ = new_binop( "/" , $1 , $3 );
-            printf( "Division resulta en: %g\n" , eval_ast($$) ); }}
+            $$ = new_binop( "/" , $1 , $3 );  } }
     | expresion OP_EQUALS expresion {
-        $$ = new_binop( "=" , $1 , $3 );
-        printf( "Comparacion de Igualdad: %g\n" , eval_ast($$) );}
+        $$ = new_binop( "=" , $1 , $3 ); }
     | expresion OP_LESSER expresion {
-        $$ = new_binop( "<" , $1 , $3 );
-        printf( "Comparacion menor que: %g\n" , eval_ast($$) );}
+        $$ = new_binop( "<" , $1 , $3 ); }
     | expresion OP_GREATER expresion    {
-        $$ = new_binop( ">" , $1 , $3 );
-        printf( "Comparacion mayor que: %g\n" , eval_ast($$) );}
+        $$ = new_binop( ">" , $1 , $3 ); }
     | expresion OP_LESSER_EQUAL expresion   {
-        $$ = new_binop( "<=" , $1 , $3 );
-        printf( "Comparacion menor o igual que: %g\n" , eval_ast($$) );}
+        $$ = new_binop( "<=" , $1 , $3 ); }
     | expresion OP_GREATER_EQUAL expresion  {
-        $$ = new_binop( ">=" , $1 , $3 );
-        printf( "Comparacion menor o igual que: %g\n" , eval_ast($$) );}
+        $$ = new_binop( ">=" , $1 , $3 ); }
     | expresion BOOL_AND expresion  {
-        $$ = new_binop( "&&" , $1 , $3 );
-        printf( "Operacion AND: %g\n" ,eval_ast($$) ); }
+        $$ = new_binop( "&&" , $1 , $3 ); }
     | expresion BOOL_OR expresion   {
-        $$ = new_binop( "||" , $1 , $3 );
-        printf( "Operacion OR: %g\n" ,eval_ast($$) ); }
+        $$ = new_binop( "||" , $1 , $3 ); }
     | function_call {
         $$ = $1; }
     | TYPE_ARRAY type PARENTHESES_OPEN expresion PARENTHESES_CLOSE {
@@ -205,64 +188,48 @@ expresion:
 
 if_statement:
     expresion IF block SEQUENCE_SEPARATOR {
-        $$ = new_if($1, $3, NULL, NULL);
-        printf("[SIMPLE CONDITIONAL]\n");   }
+        $$ = new_if($1, $3, NULL, NULL); }
     | expresion IF block elif_chain SEQUENCE_SEPARATOR {
-        $$ = new_if($1, $3, $4, NULL);
-        printf("[ELSE_IF CONDITIONAL]\n");  }
+        $$ = new_if($1, $3, $4, NULL); }
     | expresion IF block else_part SEQUENCE_SEPARATOR   {
-        $$ = new_if($1, $3, NULL, $4);
-        printf("[ELSE CONDICIONAL]\n"); }
+        $$ = new_if($1, $3, NULL, $4); }
     | expresion IF block elif_chain else_part SEQUENCE_SEPARATOR   {
-        $$ = new_if($1, $3, $4, $5);
-        printf("[ELSE_IF & ELSE CONDICIONAL ]\n");  }
+        $$ = new_if($1, $3, $4, $5); }
     ;
 
 elif_chain:
     ELSE_IF expresion IF block  {
-        $$ = new_elseif($2, $4, NULL);
-        printf("[LAST ELSE_IF-BRANCH]\n");  }
+        $$ = new_elseif($2, $4, NULL); }
     | ELSE_IF expresion IF block elif_chain {
-        $$ = new_elseif($2, $4, $5);
-        printf("[ELSE_IF BRANCH]\n");   }
+        $$ = new_elseif($2, $4, $5); }
     ;
 
 else_part:
     ELSE block  {
-        $$ = $2;
-        printf("[ELSE BRANCH]\n");
-    }
+        $$ = $2; }
     ;
 
 loop_expr:
     BEGIN_LOOP statement_list END_LOOP SEQUENCE_SEPARATOR   {
-        $$ = new_loop($2);
-        printf("El loop se asigno correctamente %g",eval_ast($$));  }
+        $$ = new_loop($2); }
     ;
 
 type:
     TYPE_INTEGER    {
-        $$ = new_type( T_integer , NULL );
-        printf("[TYPE - INTEGER - #]\n");}
+        $$ = new_type( T_integer , NULL ); }
     | TYPE_FLOAT    {
-        $$ = new_type( T_float , NULL );
-        printf("[TYPE - FLOAT - #.]\n");}
+        $$ = new_type( T_float , NULL ); }
     | TYPE_DOUBLE   {
-        $$ = new_type( T_double , NULL );
-        printf("[TYPE - DOUBLE - #..]\n");}
+        $$ = new_type( T_double , NULL ); }
     | TYPE_BOOLEAN  { 
-        $$ = new_type( T_boolean , NULL);
-        printf("[TYPE - BOOLEAN - ?']\n");}
+        $$ = new_type( T_boolean , NULL); }
     | TYPE_STRING   { 
-        $$ = new_type( T_string , NULL );
-        printf("[TYPE - STRING - @]\n");}
+        $$ = new_type( T_string , NULL ); }
     | TYPE_ARRAY type   { 
         $$ = new_type( T_array , $2 );
-        printf("[TYPE - ARRAY - []]\n");
         print_type($2); }
     | TYPE_LIST type    {
         $$ = new_type( T_list , $2 );
-        printf("[TYPE - LIST - [>]]\n");
         print_type($2); }
     ;
 
@@ -289,13 +256,6 @@ var_declaration:
     type ID var_init SEQUENCE_SEPARATOR {
         /* $1 = type, $2 = ID, $3 = var_init (puede ser NULL) */
         $$ = new_declaration($2, $1, $3);
-
-        /* Optional: depuración */
-        if ($3 == NULL) {
-            printf("[DECLARATION - NO ASSIGN]\n");
-        } else {
-            printf("[DECLARATION - WITH ASSIGN]\n");
-        }
     }
     ;
 
@@ -339,9 +299,6 @@ fun_declaration:
         int param_count = sequence_length($5);
         ASTNode **params_array = sequence_to_array($5);
         $$ = new_function_declaration($3, params_array, param_count, $1, $7);
-        printf("[FUNCTION DECLARATION]");
-        print_type( $1 );
-        printf("\n");
     }
     ;
 
@@ -351,7 +308,7 @@ arg_list:
         sequence_add($$, $1);   }
     | arg_list LIST_SEPARATOR expresion {
         sequence_add($1, $3);
-        $$ = $1;    }
+        $$ = $1; }
     ;
 
 optional_arg_list:
