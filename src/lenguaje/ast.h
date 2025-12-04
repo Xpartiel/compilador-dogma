@@ -11,7 +11,7 @@
 /* Declaracion Adelantada de Nodo */
 typedef struct ASTNode ASTNode;
 
-/* ----------------------------------
+/* -----------------------------------
     Enumeracion de tipos de nodos AST
    ----------------------------------- */
 typedef enum {
