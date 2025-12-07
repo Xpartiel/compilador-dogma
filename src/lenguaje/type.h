@@ -4,7 +4,6 @@
 typedef enum {
     T_integer,
     T_float,
-    T_double,
     T_boolean,
     T_string,
     T_array,

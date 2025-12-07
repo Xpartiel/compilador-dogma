@@ -22,9 +22,6 @@ void print_type(Type *t){
         case T_float:
             printf("float");
             break;
-        case T_double:
-            printf("double");
-            break;
         case T_boolean:
             printf("boolean");
             break;
