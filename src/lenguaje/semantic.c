@@ -216,7 +216,6 @@ const char *stype_to_string(SType t){
     switch(t){
         case S_TYPE_INT: return "int";
         case S_TYPE_FLOAT: return "float";
-        case S_TYPE_DOUBLE: return "double";
         case S_TYPE_STRING: return "string";
         case S_TYPE_BOOL: return "bool";
         case S_TYPE_VOID: return "void";
@@ -253,7 +252,6 @@ static void sem_warning(const char *fmt, ...){
 /* Convierte Type* (AST) a SType.
    - T_integer -> S_TYPE_INT
    - T_float -> S_TYPE_FLOAT
-   - T_double -> S_TYPE_DOUBLE
    - T_boolean -> S_TYPE_BOOL
    - T_string -> S_TYPE_STRING
    - T_array -> S_TYPE_ARRAY
@@ -264,7 +262,6 @@ static SType type_to_stype_full(Type *t){
     switch(t->base){
         case T_integer: return S_TYPE_INT;
         case T_float:   return S_TYPE_FLOAT;
-        case T_double:  return S_TYPE_DOUBLE;
         case T_boolean: return S_TYPE_BOOL;
         case T_string:  return S_TYPE_STRING;
         case T_array:   return S_TYPE_ARRAY;
@@ -306,8 +303,10 @@ void sem_check_sequence(ASTNode *seq);
 SType sem_infer_expr(ASTNode *expr){
     if(!expr) return S_TYPE_ERROR;
     switch(expr->kind){
-        case AST_NUMBER:
-            return S_TYPE_DOUBLE;
+        case AST_INTEGER:
+            return S_TYPE_INT;
+        case AST_FLOAT:
+            return S_TYPE_FLOAT;
         case AST_STRING:
             return S_TYPE_STRING;
         case AST_BOOLEAN:
@@ -316,8 +315,8 @@ SType sem_infer_expr(ASTNode *expr){
             Symbol *sym = sem_lookup(expr->id);
             if(!sym){
                 sem_error("Uso de variable no declarada '%s'", expr->id);
-                /* para seguir analizando retornamos double como fallback */
-                return S_TYPE_DOUBLE;
+                /* para seguir analizando retornamos float como fallback */
+                return S_TYPE_FLOAT;
             }
             if( sym->is_function ){
                 sem_error("Nombre de función '%s' usado sin llamada", expr->id);
@@ -328,15 +327,16 @@ SType sem_infer_expr(ASTNode *expr){
         case AST_UNOP: {
             SType t = sem_infer_expr(expr->unop.expr);
             if(strcmp(expr->unop.op, "-")==0){
-                if(t != S_TYPE_DOUBLE ||
-                    t != S_TYPE_FLOAT ||
-                    t != S_TYPE_INT ){
-                    sem_error("Operador unario '-' requiere tipo numerico, se obtuvo %s", stype_to_string(t));
-                    return S_TYPE_ERROR;
+                if( t == S_TYPE_FLOAT ){
+                    return S_TYPE_FLOAT;
                 }
-                return S_TYPE_DOUBLE;
-            } else if(strcmp(expr->unop.op, "!")==0){
-                if(t != S_TYPE_BOOL){
+                if( t == S_TYPE_INT ){
+                    return S_TYPE_INT;
+                }
+                sem_error("Operador unario '-' requiere tipo numerico, se obtuvo %s", stype_to_string(t));
+                return S_TYPE_ERROR;
+            } else if(strcmp(expr->unop.op, "!") == 0 ){
+                if( t != S_TYPE_BOOL ){
                     sem_error("Operador '!' requiere bool, se obtuvo %s", stype_to_string(t));
                     return S_TYPE_ERROR;
                 }
@@ -351,34 +351,43 @@ SType sem_infer_expr(ASTNode *expr){
             SType L = sem_infer_expr(expr->binop.left);
             SType R = sem_infer_expr(expr->binop.right);
 
-            if(strcmp(op, "+")==0 || strcmp(op, "-")==0 || strcmp(op, "*")==0 || strcmp(op, "/")==0){
-                if( !((L != S_TYPE_DOUBLE || L==S_TYPE_FLOAT || L==S_TYPE_DOUBLE)&&
-                    (R != S_TYPE_DOUBLE || R==S_TYPE_FLOAT || R==S_TYPE_DOUBLE)) ){
-                    sem_error("Operador aritmetico '%s' requiere operandos numericos (izq=%s, der=%s)", op, stype_to_string(L), stype_to_string(R));
-                    return S_TYPE_ERROR;
+            if( strcmp(op, "+")==0 ||
+                strcmp(op, "-")==0 ||
+                strcmp(op, "*")==0 ||
+                strcmp(op, "/")==0) {
+                
+                if( ( L == S_TYPE_FLOAT ) && ( R == S_TYPE_FLOAT ) ){
+                    return S_TYPE_FLOAT;
                 }
-                return S_TYPE_DOUBLE;
+                if( (L == S_TYPE_INT ) && ( R == S_TYPE_INT) ){
+                    return S_TYPE_INT;
+                }
+                sem_error("Operador aritmetico '%s' requiere operandos numericos (izq=%s, der=%s)", op, stype_to_string(L), stype_to_string(R));
+                return S_TYPE_ERROR;
             }
 
-            /* comparaciones numericas -> bool */
-            if(strcmp(op, "<")==0 || strcmp(op, ">")==0 || strcmp(op, "<=")==0 || strcmp(op, ">=")==0 || strcmp(op, "=")==0){
-                if( !((L==S_TYPE_INT || L==S_TYPE_FLOAT || L==S_TYPE_DOUBLE) &&
-                    (R==S_TYPE_INT || R==S_TYPE_FLOAT || R==S_TYPE_DOUBLE)) ){
-                    sem_error("Operador comparacion '%s' requiere operandos numericos (izq=%s, der=%s)", op, stype_to_string(L), stype_to_string(R));
-                    return S_TYPE_ERROR;
+            /* operaciones relacionales */
+            if( strcmp(op, "<")==0 ||
+                strcmp(op, ">")==0 ||
+                strcmp(op, "<=")==0 ||
+                strcmp(op, ">=")==0 ||
+                strcmp(op, "=")==0) {
+
+                if( (L==S_TYPE_INT || L==S_TYPE_FLOAT) && ( R==S_TYPE_INT || R==S_TYPE_FLOAT) ){
+                    return S_TYPE_BOOL;
                 }
-                return S_TYPE_BOOL;
+                sem_error("Operador comparacion '%s' requiere operandos numericos, encontrados (izq=%s, der=%s)", op, stype_to_string(L), stype_to_string(R));
+                return S_TYPE_ERROR;
             }
 
             /* logicos */
             if(strcmp(op, "&&")==0 || strcmp(op, "||")==0){
-                if( L != S_TYPE_BOOL || R != S_TYPE_BOOL ){
+                if( L != S_TYPE_BOOL || R != S_TYPE_BOOL ) {
                     sem_error("Operador logico '%s' requiere operandos bool (izq=%s, der=%s)", op, stype_to_string(L), stype_to_string(R));
                     return S_TYPE_ERROR;
                 }
                 return S_TYPE_BOOL;
             }
-
             sem_error("Operador binario desconocido '%s'", op);
             return S_TYPE_ERROR;
         }
@@ -386,46 +395,31 @@ SType sem_infer_expr(ASTNode *expr){
             /* inferir RHS y tratar LHS */
             SType rhs = sem_infer_expr(expr->assign.value);
             Symbol *sym = sem_lookup(expr->assign.name);
-            if(!sym){
+            if( !sym ){
                 /* no declarado: lo introducimos en el scope actual con el tipo inferido */
                 if(sem_add_symbol(expr->assign.name, rhs,NULL) == 0){
-                    sem_warning("Variable '%s' no declarada; se declara implícitamente como %s", expr->assign.name, stype_to_string(rhs));
+                    sem_warning("Variable '%s' sin declarar; se declara implícitamente como %s", expr->assign.name, stype_to_string(rhs));
                 } else {
-                    sem_error("No se pudo declarar '%s' en el scope actual", expr->assign.name);
+                    sem_error("No pudo declararse '%s' en el scope actual", expr->assign.name);
                 }
                 return rhs;
             } else {
-                if(sym->is_function){
+                if( sym->is_function ){
                     sem_error("Intento de asignar a nombre de funcion '%s'", expr->assign.name);
                     return S_TYPE_ERROR;
-                }
-
-                if(sym->type == S_TYPE_DOUBLE){
-                    if(!(rhs == S_TYPE_INT || rhs == S_TYPE_FLOAT || rhs == S_TYPE_DOUBLE)){
-                        sem_error("Asignacion incompatible: variable '%s' es %s pero se asigna %s", expr->assign.name, stype_to_string(sym->type), stype_to_string(rhs));
-                        return S_TYPE_ERROR;
+                }else{
+                    if( sym->type == rhs ){
+                        return sym->type;
                     }
-                    return S_TYPE_DOUBLE;
-                } else if(sym->type == S_TYPE_INT){
-                    if(rhs != S_TYPE_INT){
-                        sem_error("Asignacion incompatible: variable '%s' es int pero se asigna %s", expr->assign.name, stype_to_string(rhs));
-                        return S_TYPE_ERROR;
-                    }
-                    return S_TYPE_INT;
-                } else {
-                    /* comparar tipos */
-                    if(sym->type != rhs){
-                        sem_error("Asignacion incompatible: variable '%s' es %s pero se asigna %s", expr->assign.name, stype_to_string(sym->type), stype_to_string(rhs));
-                        return S_TYPE_ERROR;
-                    }
-                    return sym->type;
+                    sem_error("Asignacion incompatible: variable '%s' es %s pero se asigna %s", expr->assign.name, stype_to_string(sym->type), stype_to_string(rhs));
+                    return S_TYPE_ERROR;
                 }
             }
         }
         case AST_IF: {
             SType condt = sem_infer_expr(expr->conditional.condition);
-            if(condt != S_TYPE_BOOL){
-                sem_error("Condicion 'if' debe ser bool (se obtuvo %s)", stype_to_string(condt));
+            if( condt != S_TYPE_BOOL ){
+                sem_error("Condicional 'IF' debe ser bool (se obtuvo %s)", stype_to_string(condt));
             }
             /* verificar ramas en scopes separados */
             sem_enter_scope();
@@ -443,7 +437,6 @@ SType sem_infer_expr(ASTNode *expr){
                 sem_exit_scope();
                 eif = eif->chained_conditional.next;
             }
-
             if(expr->conditional.else_branch){
                 sem_enter_scope();
                 sem_check_statement(expr->conditional.else_branch);
@@ -482,8 +475,8 @@ SType sem_infer_expr(ASTNode *expr){
         case AST_ARRAY: {
             if(expr->array.size_expr){
                 SType s = sem_infer_expr(expr->array.size_expr);
-                if(!(s == S_TYPE_INT || s == S_TYPE_DOUBLE)){
-                    sem_error("Size de arreglo debe ser numero, se obtuvo %s", stype_to_string(s));
+                if( s != S_TYPE_INT ){
+                    sem_error("Declarar arreglo con espacio requiere INTEGER, %s encontrado", stype_to_string(s));
                 }
             }
             /* Representamos arrays como S_TYPE_ARRAY in contexts where type is known; here return ERROR */
@@ -492,15 +485,15 @@ SType sem_infer_expr(ASTNode *expr){
         case AST_LIST: {
             if(expr->list.size_expr){
                 SType s = sem_infer_expr(expr->list.size_expr);
-                if(!(s == S_TYPE_INT || s == S_TYPE_DOUBLE)){
-                    sem_error("Size de lista debe ser numero, se obtuvo %s", stype_to_string(s));
+                if( s != S_TYPE_INT ){
+                    sem_error("Size de lista debe ser INTEGER, %s encontrado", stype_to_string(s));
                 }
             }
             return S_TYPE_ERROR;
         }
         case AST_FUNCTION_CALL: {
             Symbol *f = sem_lookup(expr->function_call.name);
-            if(!f || !f->is_function){
+            if( !f || !f->is_function ){
                 sem_error("Funcion '%s' no declarada", expr->function_call.name);
                 return S_TYPE_ERROR;
             }
@@ -514,7 +507,7 @@ SType sem_infer_expr(ASTNode *expr){
                 SType expected = type_to_stype_full(param_type_reference);
                 SType actual = sem_infer_expr(expr->function_call.args[i]);
 
-                if(expected == S_TYPE_ARRAY || expected == S_TYPE_LIST){
+                if(expected == S_TYPE_ARRAY || expected == S_TYPE_LIST) {
                     /* expected is composite: check if arg is init-list and elements compatible */
                     ASTNode *arg = expr->function_call.args[i];
                     if(arg->kind == AST_INIT_LIST){
@@ -526,17 +519,8 @@ SType sem_infer_expr(ASTNode *expr){
                     } else {
                         sem_warning("No se pudo verificar completamente argumento %d de '%s' (tipos compuestos)", i+1, expr->function_call.name);
                     }
-                } else {
-                    /* numeric promotions: if expected is DOUBLE accept int/float/double */
-                    if(expected == S_TYPE_DOUBLE){
-                        if(!(actual==S_TYPE_INT || actual==S_TYPE_FLOAT || actual==S_TYPE_DOUBLE)){
-                            sem_error("Tipo de argumento %d en llamada a '%s' incompatible (esperado %s, obtenido %s)", i+1, expr->function_call.name, stype_to_string(expected), stype_to_string(actual));
-                        }
-                    } else {
-                        if(actual != expected){
-                            sem_error("Tipo de argumento %d en llamada a '%s' incompatible (esperado %s, obtenido %s)", i+1, expr->function_call.name, stype_to_string(expected), stype_to_string(actual));
-                        }
-                    }
+                } else if(actual != expected){
+                    sem_error("Tipo de argumento %d en llamada a '%s' incompatible (esperado %s, obtenido %s)", i+1, expr->function_call.name, stype_to_string(expected), stype_to_string(actual));
                 }
             }
             return f->return_type;
@@ -558,20 +542,20 @@ void sem_check_statement(ASTNode *stmt){
             break;
         case AST_DECLARATION: {
             char *name = stmt->declaration.name;
+            
             Type *t = stmt->declaration.type;
-            ASTNode *init = stmt->declaration.init;
-
             SType st = type_to_stype_full(t);
             Type *type_reference = NULL;
             if(st == S_TYPE_ARRAY || st == S_TYPE_LIST){
                 type_reference = t;
             }
 
-            if(sem_add_symbol(name, st, type_reference) != 0){
+            if( sem_add_symbol(name, st, type_reference) != 0 ){
                 sem_error("Variable '%s' ya declarada en este scope", name);
             }
 
             /* inicializador */
+            ASTNode *init = stmt->declaration.init;
             if(init){
                 if(init->kind == AST_INIT_LIST){
                     SType elems = sem_infer_expr(init);
@@ -582,7 +566,7 @@ void sem_check_statement(ASTNode *stmt){
                                       name, stype_to_string(elems), stype_to_string(base));
                         }
                     } else {
-                        sem_error("Inicializador por lista usado para variable no-compuesta '%s'", name);
+                        sem_error("Inicializacion por lista en variable no-compuesta '%s'", name);
                     }
                 } else {
                     SType it = sem_infer_expr(init);
@@ -590,11 +574,11 @@ void sem_check_statement(ASTNode *stmt){
                         sem_error("Inicializador de variable compuesta '%s' debe ser lista o constructo apropiado", name);
                     } else {
                         /* handle numeric promotions */
-                        if(st == S_TYPE_DOUBLE){
-                            if(!(it==S_TYPE_INT || it==S_TYPE_FLOAT || it==S_TYPE_DOUBLE)){
+                        if( st == S_TYPE_FLOAT ){
+                            if( !( it==S_TYPE_INT || it==S_TYPE_INT )){
                                 sem_error("Inicializacion de '%s' incompatible (esperado %s, obtenido %s)", name, stype_to_string(st), stype_to_string(it));
                             }
-                        } else {
+                        }else {
                             if(it != st){
                                 sem_error("Inicializacion de '%s' incompatible (esperado %s, obtenido %s)", name, stype_to_string(st), stype_to_string(it));
                             }
@@ -607,7 +591,8 @@ void sem_check_statement(ASTNode *stmt){
         case AST_ASSIGN:
         case AST_BINOP:
         case AST_UNOP:
-        case AST_NUMBER:
+        case AST_INTEGER:
+        case AST_FLOAT:
         case AST_STRING:
         case AST_BOOLEAN:
         case AST_IDENTIFIER:
@@ -692,8 +677,8 @@ void sem_check_statement(ASTNode *stmt){
                             sem_warning("No se pudo verificar completamente return con tipo compuesto");
                         }
                     } else {
-                        if(current_function_return_type == S_TYPE_DOUBLE){
-                            if(!(rt==S_TYPE_INT || rt==S_TYPE_FLOAT || rt==S_TYPE_DOUBLE)){
+                        if( current_function_return_type == S_TYPE_FLOAT ){
+                            if( !(rt==S_TYPE_INT || rt==S_TYPE_FLOAT ) ){
                                 sem_error("Tipo de return incompatible: se esperaba %s, se obtuvo %s", stype_to_string(current_function_return_type), stype_to_string(rt));
                             }
                         } else {
