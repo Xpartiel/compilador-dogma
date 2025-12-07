@@ -18,13 +18,15 @@ extern YYSTYPE yylval;
 DIGIT       [0-9]
 LETTER      [a-zA-Z]
 ID          {LETTER}({LETTER}|{DIGIT})*
-NUMBER      {DIGIT}+(\.{DIGIT}+)?
+NUMBER_INT      {DIGIT}+
+NUMBER_FLOAT    {DIGIT}+(\.{DIGIT}+)?
 COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 
 %%
 {COMMENT}   { /* comentario uni/multi linea */ }
 
-{NUMBER}    { yylval.num = atof(yytext); return NUMBER; }
+{NUMBER_INT}    { yylval.entero = atof(yytext); return NUMBER_INT; }
+{NUMBER_FLOAT}  { yylval.flotante = atof(yytext); return NUMBER_FLOAT; }
 {ID}        { yylval.id = strdup(yytext); return ID; }
 
 "+"         { return OP_PLUS; }
@@ -63,7 +65,6 @@ COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 "&&"        { return BOOL_AND; }
 "||"        { return BOOL_OR; }
 
-"#.."       { return TYPE_DOUBLE; } /* double */
 "#."        { return TYPE_FLOAT; }  /* float */
 "#"         { return TYPE_INTEGER; }    /* int */
 "@"         { return TYPE_STRING; } /* string */
