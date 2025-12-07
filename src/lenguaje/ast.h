@@ -15,7 +15,8 @@ typedef struct ASTNode ASTNode;
     Enumeracion de tipos de nodos AST
    ----------------------------------- */
 typedef enum {
-    AST_NUMBER,
+    AST_INTEGER,
+    AST_FLOAT,
     AST_STRING,
     AST_BOOLEAN,
     AST_IDENTIFIER,
@@ -132,6 +133,14 @@ typedef struct {
     int arg_count;
 } AST_FunctionCall;
 
+typedef struct {
+    int num;
+} AST_Integer;
+
+typedef struct {
+    float num;
+} AST_Float;
+
 
 struct ASTNode {
     ASTKind kind;
@@ -140,6 +149,8 @@ struct ASTNode {
         char *str;
         int boolean;
         char *id;
+        AST_Integer integer;
+        AST_Float floating;
         AST_BinOp binop;
         AST_UnOp unop;
         AST_Assign assign;
@@ -167,7 +178,8 @@ ASTNode **sequence_to_array( ASTNode *seq );
 /* ---------------
     CONSTRUCTORES
    --------------- */
-ASTNode *new_num(double);
+ASTNode *new_int( int );
+ASTNode *new_float( float );
 ASTNode *new_string(char *);
 ASTNode *new_boolean(int);
 

@@ -7,38 +7,6 @@
     IMPLEMENTACION ASTNode
    ======================== */
 
-/* Tabla simple de variables */
-typedef struct{
-    char *nombre;
-    double valor;
-} Variable;
-
-
-Variable tabla[256];
-int vars_act = 0;
-
-
-double obtener( char *id ){
-    for( int i=0; i<vars_act; i++ ){
-        if( strcmp( tabla[i].nombre, id ) == 0 ){
-            return tabla[i].valor;
-        }
-    }
-    return 0.0;
-}
-
-void guardar( char* id , double val ){
-    for( int i = 0; i < vars_act; i++){
-        if( strcmp( tabla[i].nombre , id ) == 0 ){
-            tabla[i].valor = val;
-            return;
-        }
-    }
-    tabla[vars_act].valor = val;
-    tabla[vars_act].nombre = strdup(id);
-    vars_act++;
-}
-
 
 int sequence_length(ASTNode *seq) {
     if (!seq || seq->kind != AST_SEQUENCE) return 0;
@@ -59,9 +27,16 @@ ASTNode **sequence_to_array(ASTNode *seq) {
     IMPLEMENTACION CONSTRUCTORES
    ------------------------------ */
 
-ASTNode* new_num(double n){
+ASTNode* new_int(int n){
     ASTNode* node = malloc(sizeof(ASTNode));
-    node->kind = AST_NUMBER;
+    node->kind = AST_INTEGER;
+    node->num = n;
+    return node;
+}
+
+ASTNode* new_float(float n){
+    ASTNode* node = malloc(sizeof(ASTNode));
+    node->kind = AST_FLOAT;
     node->num = n;
     return node;
 }
@@ -266,7 +241,8 @@ ASTNode *new_function_call(char *name, ASTNode **args, int arg_count)
 void free_ast(ASTNode* n){
     if(!n) return;
     switch(n->kind){
-        case AST_NUMBER: break;
+        case AST_INTEGER: break;
+        case AST_FLOAT: break;
         case AST_STRING:
             free(n->str); break;
         case AST_BOOLEAN: break;
@@ -336,10 +312,12 @@ void free_ast(ASTNode* n){
 
 /* Evaluador simple: devuelve double (0.0 = false, !=0 = true).
    Ejecuta ASSIGN (usa guardar()) y devuelve el valor asignado. */
+/*
 double eval_ast(ASTNode* n){
     if(!n) return 0.0;
     switch(n->kind){
-        case AST_NUMBER:
+        case AST_INTEGER:
+        case AST_FLOAT:
             printf("Evaluando numero\n");
             return n->num;
 
@@ -426,13 +404,13 @@ double eval_ast(ASTNode* n){
             return 0.0;
         }
         case AST_LOOP:{
-            /* while(1){ // REAL */ 
-            for(int i=0; i<100; i++){ // TESTING */
+            /* while(1){ // REAL
+            for(int i=0; i<100; i++){ // TESTING 
                 eval_ast(n->loop_type.body);
             }
             return 0.0;
         }
-        /*
+        
         case AST_ARRAY:{
             double size = eval_ast(n->array.size_expr);
             printf("[NEW_ARRAY] tipo=");
@@ -450,8 +428,9 @@ double eval_ast(ASTNode* n){
             double handle = (double) (intptr_t) n;
             return handle;
         }
-        */
+        
         default:
             return 0.0;
     }
 }
+*/
