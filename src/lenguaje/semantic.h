@@ -12,7 +12,6 @@ typedef enum {
     S_TYPE_ERROR = -1,
     S_TYPE_INT,
     S_TYPE_FLOAT,
-    S_TYPE_DOUBLE,
     S_TYPE_STRING,
     S_TYPE_BOOL,
     S_TYPE_VOID,
