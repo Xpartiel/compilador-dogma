@@ -208,11 +208,10 @@ char *codegen_gen_expr(ASTNode *expr){
         case AST_FLOAT: {
             char buf[64];
             char *t = codegen_new_temp();
+
             ensure_declared(t);
             snprintf(buf, sizeof(buf), "%g", expr->floating.num);
-            return strdup(buf);
-
-
+            
             emit("ASSIGN %s %s", buf, t);
             return t;
         }
@@ -331,18 +330,59 @@ char *codegen_gen_expr(ASTNode *expr){
             return strdup("0");
 
         case AST_FUNCTION_CALL: {
-            /* push params in order */
+
+             const char *fname = expr->function_call.name;
+
+            /*Checamos si es una funcion nativa de la FIS*/
+            if (strcmp(fname, "PRINT") == 0) {
+                char *a = codegen_gen_expr(expr->function_call.args[0]);
+                emit("PRINT %s", a);
+                free(a);
+                return strdup("0");
+            }
+
+            if (strcmp(fname, "INPUT") == 0) {
+                char *dest = codegen_gen_expr(expr->function_call.args[0]);
+                ensure_declared(dest);
+                emit("INPUT %s", dest);
+                return dest;
+            }
+
+            if (strcmp(fname, "KEY") == 0) {
+                char *code = codegen_gen_expr(expr->function_call.args[0]);
+                char *dest = codegen_gen_expr(expr->function_call.args[1]);
+                ensure_declared(dest);
+                emit("KEY %s %s", code, dest);
+                free(code);
+                return dest;
+            }
+
+            if (strcmp(fname, "PIXEL") == 0) {
+                char *x = codegen_gen_expr(expr->function_call.args[0]);
+                char *y = codegen_gen_expr(expr->function_call.args[1]);
+                char *c = codegen_gen_expr(expr->function_call.args[2]);
+                emit("PIXEL %s %s %s", x, y, c);
+                free(x); free(y); free(c);
+                return strdup("0");
+            }
+
+            /*Si no es nativa, entonces la tenemos que buscar*/
+            /*Iteramos los argumentos de la funcion*/
             for(int i=0;i<expr->function_call.arg_count;i++){
                 char *a = codegen_gen_expr(expr->function_call.args[i]);
+                /*Escribimos en el archivo*/
                 emit("PARAM %s", a);
                 free(a);
             }
-            /* call */
+
+            /*Escribimos en el archivo*/
             emit("GOSUB %s", expr->function_call.name);
-            /* result in RVAL */
+            
+            /*Para la variable de retorno*/
             char *t = codegen_new_temp();
             ensure_declared(t);
-            emit("ASSIGN RVAL %s", t); /* copy return value */
+            /*Escribimos en el archivo*/
+            emit("ASSIGN RVAL %s", t); 
             return t;
         }
 
@@ -373,14 +413,13 @@ char *codegen_gen_expr(ASTNode *expr){
 }
 
 /* ----- GENERACIÓN DE SENTENCIAS ----- */
-void codegen_gen_statement(ASTNode *stmt){
-    if(!stmt) return;
+bool codegen_gen_statement(ASTNode *stmt){
+    if(!stmt) return false;
 
     switch(stmt->kind){
         
         case AST_SEQUENCE:
-            codegen_gen_sequence(stmt);
-            break;
+            return codegen_gen_sequence(stmt);
 
         case AST_DECLARATION:
             ensure_declared(stmt->declaration.name);
@@ -389,13 +428,13 @@ void codegen_gen_statement(ASTNode *stmt){
                 emit("ASSIGN %s %s", r, stmt->declaration.name);
                 free(r);
             }
-            break;
+            return false;
 
         case AST_ASSIGN: {
             /* codegen_gen_expr ya emite ASSIGN para AST_ASSIGN */
             char *r = codegen_gen_expr(stmt);
             free(r);
-            break;
+            return false;
         }
 
         case AST_IF: {
@@ -408,33 +447,43 @@ void codegen_gen_statement(ASTNode *stmt){
             free(cond);
 
             /* then branch */
-            codegen_gen_statement(stmt->conditional.if_branch);
-            emit("GOTO %s", L_end);
+            bool thenReturned=codegen_gen_statement(stmt->conditional.if_branch);
+            if(!thenReturned) emit("GOTO %s", L_end);
             emit("LABEL %s", L_else);
 
+            bool allElifsReturn = true;
             /* elif chain: cada nodo chained_conditional contiene condition & branch & next */
             ASTNode *eif = stmt->conditional.elif_list;
             while(eif){
-                /* eif: chained_conditional */
+                /* eif: cadena de condicionales para else if seguidos */
                 char *c = codegen_gen_expr(eif->chained_conditional.condition);
-                char *L_next_else = codegen_new_label();
-                emit("IFFALSE %s GOTO %s", c, L_next_else);
+                char *L_next = codegen_new_label();
+                emit("IFFALSE %s GOTO %s", c, L_next);
                 free(c);
-                codegen_gen_statement(eif->chained_conditional.branch);
-                emit("GOTO %s", L_end);
-                emit("LABEL %s", L_next_else);
+                
+                bool elifReturned=codegen_gen_statement(eif->chained_conditional.branch);
+                if(!elifReturned) emit("GOTO %s", L_end);
+                emit("LABEL %s", L_next);
+                
+                if(!elifReturned) allElifsReturn = false;
                 eif = eif->chained_conditional.next;
             }
 
-            /* else */
-            if(stmt->conditional.else_branch){
-                codegen_gen_statement(stmt->conditional.else_branch);
+            bool elseExists = (stmt->conditional.else_branch != NULL);
+            bool elseReturned = false;
+
+            if(elseExists){
+                elseReturned = codegen_gen_statement(stmt->conditional.else_branch);
             }
 
             emit("LABEL %s", L_end);
-            free(L_else);
-            free(L_end);
-            break;
+
+            bool ifGuarantees =
+                thenReturned &&
+                allElifsReturn &&
+                (elseExists ? elseReturned : true);
+
+            return ifGuarantees;
         }
 
         case AST_LOOP: {
@@ -445,7 +494,7 @@ void codegen_gen_statement(ASTNode *stmt){
 
             loop_push( L_end , L_start );
 
-            codegen_gen_statement(stmt->loop_type.body);
+            (void)codegen_gen_statement(stmt->loop_type.body);
             emit("GOTO %s", L_start);
             emit("LABEL %s", L_end);
 
@@ -453,27 +502,27 @@ void codegen_gen_statement(ASTNode *stmt){
 
             free(L_start);
             free(L_end);
-            break;
+            return false;
         }
 
         case AST_BREAK: {
             LoopContext *context = loop_top();
             if(!context){
-                emit("; SEMANTIC WARNING: break outside loop");
+                emit("// SEMANTIC WARNING: break outside loop");
             } else {
                 emit("GOTO %s", context->label_break);
             }
-            break;
+            return false;
         }
 
         case AST_CONTINUE: {
             LoopContext *context = loop_top();
             if(!context){
-                emit("; SEMANTIC WARNING: continue outside loop");
+                emit("// SEMANTIC WARNING: continue outside loop");
             } else {
                 emit("GOTO %s", context->label_continue);
             }
-            break;
+            return false;
         }
 
         case AST_RETURN: {
@@ -487,7 +536,7 @@ void codegen_gen_statement(ASTNode *stmt){
                 emit("ASSIGN 0 RVAL");
             }
             emit("RETURN");
-            break;
+            return true;
         }
 
         case AST_FUNCTION_DECL: {
@@ -507,13 +556,15 @@ void codegen_gen_statement(ASTNode *stmt){
             }
 
             /* generate function body */
-            codegen_gen_statement(stmt->function_declaration.body);
+            bool returned= codegen_gen_statement(stmt->function_declaration.body);
 
             /* if execution reaches end of function without RETURN, ensure RETURN */
             /* ensure RVAL exists (maybe set to 0) */
-            emit("ASSIGN 0 RVAL");
-            emit("RETURN");
-            break;
+            if(!returned){
+                emit("ASSIGN 0 RVAL");
+                emit("RETURN");
+            }
+            return false;
         }
         case AST_FUNCTION_CALL: {
             /* functions used as statements: generate call and discard RVAL */
@@ -525,21 +576,24 @@ void codegen_gen_statement(ASTNode *stmt){
             }
             emit("GOSUB %s", stmt->function_call.name);
             /* optionally discard RVAL or ignore */
-            break;
+            return false;
         }
         default:
             /* expresiones sueltas: evaluarlas y descartar resultado */
             {
                 char *r = codegen_gen_expr(stmt);
                 free(r);
+                return false;
             }
-            break;
     }
 }
 
-void codegen_gen_sequence(ASTNode *seq){
-    if(!seq) return;
+bool codegen_gen_sequence(ASTNode *seq){
+    if(!seq) return false;
     for(int i=0;i<seq->sequence.count;i++){
-        codegen_gen_statement(seq->sequence.list[i]);
+        //codegen_gen_statement(seq->sequence.list[i]);
+        bool ret = codegen_gen_statement(seq->sequence.list[i]);
+        if(ret) return true;     //Si algún statement garantiza RETURN, paramos
     }
+    return false;
 }

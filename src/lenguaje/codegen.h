@@ -34,8 +34,8 @@ void codegen_finish(void);
  *   con el nombre (variable literal o temporal) que contiene el resultado.
  *   El llamador debe free() la cadena retornada cuando corresponda.
  */
-void codegen_gen_sequence(ASTNode *seq);
-void codegen_gen_statement(ASTNode *stmt);
+bool codegen_gen_statement(ASTNode *stmt);
+bool codegen_gen_sequence(ASTNode *seq);
 char *codegen_gen_expr(ASTNode *expr);
 
 /* utilidades (opcionales) */
