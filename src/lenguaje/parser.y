@@ -3,6 +3,7 @@
     copiado al inicio del .c generado
    =================================== */
 %{
+#include "codegen.h"
 #include "ast.h"
 #include "type.h"
 #include "semantic.h"
@@ -39,7 +40,8 @@ void yyerror(const char *s) {
 
 
 %union {
-    double num; /* NUMBER token */
+    int entero; /* NUMBER token */
+    float flotante;
     char* id;   /* ID token */
     char* str;  /* LIT_STRING token */
     int boolean;
@@ -48,7 +50,8 @@ void yyerror(const char *s) {
 }
 
 /* Tokens con valor */
-%token <num> NUMBER
+%token <entero> NUMBER_INT
+%token <flotante> NUMBER_FLOAT
 %token <str> LIT_STRING
 %token <id> ID
 
@@ -140,8 +143,10 @@ statement:
     ;
 
 expresion:
-    NUMBER  {
-        $$ = new_num( $1 );  }
+    NUMBER_INT  {
+        $$ = new_int( $1 ); }
+    | NUMBER_FLOAT {
+        $$ = new_float( $1 );   }
     | LIT_STRING    {
         $$ = new_string( $1 ); }
     | ID    {
@@ -159,11 +164,7 @@ expresion:
     | expresion OP_TIMES expresion   {
         $$ = new_binop( "*" , $1 , $3 );  }
     | expresion OP_DIVIDE expresion   {
-        if( eval_ast($3) == 0.0 ){
-            yyerror("division por 0"); /* // TODO REMOVE*/
-            $$ = new_num(0.0);
-        }else{
-            $$ = new_binop( "/" , $1 , $3 );  } }
+        $$ = new_binop( "/" , $1 , $3 );    }
     | expresion OP_EQUALS expresion {
         $$ = new_binop( "=" , $1 , $3 ); }
     | expresion OP_LESSER expresion {
@@ -219,8 +220,6 @@ type:
         $$ = new_type( T_integer , NULL ); }
     | TYPE_FLOAT    {
         $$ = new_type( T_float , NULL ); }
-    | TYPE_DOUBLE   {
-        $$ = new_type( T_double , NULL ); }
     | TYPE_BOOLEAN  { 
         $$ = new_type( T_boolean , NULL); }
     | TYPE_STRING   { 
@@ -270,10 +269,11 @@ list_item:
     expresion {
         $$ = new_init_data_structure();
         init_data_structure_add( $$ , $1 ); }
-    | list_item LIST_SEPARATOR expresion{
+    | list_item LIST_SEPARATOR expresion {
         init_data_structure_add( $1 , $3 );
         $$ = $1;
     }
+    ;
 
 param_decl:
     type ID{ $$ = new_declaration($2, $1, NULL);}
@@ -348,6 +348,14 @@ int main(int argc, char** argv){
         printf("Errores semánticos: el código intermedio NO se generará.\n");
         return 1;
     }
+
+    
+    FILE *out = fopen("out.fis", "w");
+    if(!out){ perror("fopen"); exit(1); }
+    codegen_init(out);
+    codegen_gen_sequence(root);
+    codegen_finish();
+    fclose(out);
 
     return 0;
 }
