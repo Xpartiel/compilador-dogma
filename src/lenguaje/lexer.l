@@ -18,15 +18,15 @@ extern YYSTYPE yylval;
 DIGIT       [0-9]
 LETTER      [a-zA-Z]
 ID          {LETTER}({LETTER}|{DIGIT})*
+NUMBER_FLOAT    {DIGIT}+\.{DIGIT}+
 NUMBER_INT      {DIGIT}+
-NUMBER_FLOAT    {DIGIT}+(\.{DIGIT}+)?
 COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 
 %%
 {COMMENT}   { /* comentario uni/multi linea */ }
 
-{NUMBER_INT}    { yylval.entero = atof(yytext); return NUMBER_INT; }
-{NUMBER_FLOAT}  { yylval.flotante = atof(yytext); return NUMBER_FLOAT; }
+{NUMBER_FLOAT}  { yylval.flotante = strtof(yytext, NULL) ; return NUMBER_FLOAT; }
+{NUMBER_INT}    { yylval.entero = atoi(yytext); return NUMBER_INT; }
 {ID}        { yylval.id = strdup(yytext); return ID; }
 
 "+"         { return OP_PLUS; }
@@ -68,7 +68,7 @@ COMMENT     "/\\*"([^*]|\\*+[^*/])*"\\*/"
 "#."        { return TYPE_FLOAT; }  /* float */
 "#"         { return TYPE_INTEGER; }    /* int */
 "@"         { return TYPE_STRING; } /* string */
-"?'"       { return TYPE_BOOLEAN; }    /* bool */
+"?'"        { return TYPE_BOOLEAN; }    /* bool */
 "[>]"       { return TYPE_LIST; } /* list */
 "[]"        { return TYPE_ARRAY; }    /* array */
 
