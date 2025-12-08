@@ -554,6 +554,8 @@ void sem_check_statement(ASTNode *stmt){
                 sem_error("Variable '%s' ya declarada en este scope", name);
             }
 
+            
+
             /* inicializador */
             ASTNode *init = stmt->declaration.init;
             if(init){
@@ -575,7 +577,7 @@ void sem_check_statement(ASTNode *stmt){
                     } else {
                         /* handle numeric promotions */
                         if( st == S_TYPE_FLOAT ){
-                            if( !( it==S_TYPE_INT || it==S_TYPE_INT )){
+                            if( !( it==S_TYPE_INT || it==S_TYPE_FLOAT )){
                                 sem_error("Inicializacion de '%s' incompatible (esperado %s, obtenido %s)", name, stype_to_string(st), stype_to_string(it));
                             }
                         }else {
