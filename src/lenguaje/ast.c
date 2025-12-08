@@ -30,14 +30,14 @@ ASTNode **sequence_to_array(ASTNode *seq) {
 ASTNode* new_int(int n){
     ASTNode* node = malloc(sizeof(ASTNode));
     node->kind = AST_INTEGER;
-    node->num = n;
+    node->integer.num = n;
     return node;
 }
 
 ASTNode* new_float(float n){
     ASTNode* node = malloc(sizeof(ASTNode));
     node->kind = AST_FLOAT;
-    node->num = n;
+    node->floating.num = n;
     return node;
 }
 

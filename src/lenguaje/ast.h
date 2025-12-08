@@ -145,7 +145,6 @@ typedef struct {
 struct ASTNode {
     ASTKind kind;
     union {
-        double num;
         char *str;
         int boolean;
         char *id;
