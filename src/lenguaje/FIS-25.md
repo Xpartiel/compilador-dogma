@@ -11,11 +11,11 @@ El lenguaje intermedio soporta un conjunto estricto de tipos de datos primitivos
 ## Tabla de Tipos de Datos Primitivos
 | Tipo | Descripción Semántica |
 | ---- | --------------------- |
-| int | Números enteros con signo. Utilizados para contadores e índices.
-| float | Números reales de punto flotante. Esenciales para cálculos de precisión.
-| bool | Valor lógico binario donde 0 representa Falso y 1 representa Verdadero.
-| string | Cadenas de caracteres literales. Su uso se limita a instrucciones de salida.
-| pointer | Referencia de memoria utilizada para arrays y listas dinámicas.
+| int | Números enteros con signo. Utilizados para contadores e índices |
+| float | Números reales de punto flotante. Esenciales para cálculos de precisión |
+| bool | Valor lógico binario donde 0 representa Falso y 1 representa Verdadero |
+| string | Cadenas de caracteres literales. Su uso se limita a instrucciones de salida |
+| pointer | Referencia de memoria utilizada para arrays y listas dinámicas |
 | --- | --- |
 
 # Conjunto de Instrucciones (ISA)
