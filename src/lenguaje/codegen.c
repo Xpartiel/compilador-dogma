@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
 /* codegen.c
  *
@@ -156,7 +157,7 @@ void codegen_init(FILE *out){
     svec_init(&declared);
 
     ensure_declared("RVAL");
-    emit("; FIS-25 generated code");
+    emit("// FIS-25 generated code");
 }
 
 void codegen_finish(void){
@@ -326,12 +327,12 @@ char *codegen_gen_expr(ASTNode *expr){
 
         case AST_INIT_LIST:
             /* inicializadores no producen un valor directo; generar errores si se usa en expresion */
-            emit("; WARNING: init-list used in expr context");
+            emit("// WARNING: init-list used in expr context");
             return strdup("0");
 
         case AST_FUNCTION_CALL: {
 
-             const char *fname = expr->function_call.name;
+            const char *fname = expr->function_call.name;
 
             /*Checamos si es una funcion nativa de la FIS*/
             if (strcmp(fname, "PRINT") == 0) {
@@ -567,6 +568,69 @@ bool codegen_gen_statement(ASTNode *stmt){
             return false;
         }
         case AST_FUNCTION_CALL: {
+
+
+            const char *fname = stmt->function_call.name;
+
+            /*Checamos si es una funcion nativa de la FIS*/
+            if (strcmp(fname, "PRINT") == 0) {
+                if(stmt->function_call.arg_count < 1){
+                    emit("; SEMANTIC ERROR: PRINT expects 1 argument");
+                    return false;
+                }
+                char *a = codegen_gen_expr(stmt->function_call.args[0]);
+                emit("PRINT %s", a);
+                free(a);
+                return false;
+            }
+            if (strcmp(fname, "INPUT") == 0) {
+                if(stmt->function_call.arg_count != 1){
+                    emit("; SEMANTIC ERROR: INPUT expects 1 argument");
+                    return false;
+                }
+                ASTNode *destNode = stmt->function_call.args[0];
+                if(destNode->kind != AST_IDENTIFIER){
+                    emit("; SEMANTIC ERROR: INPUT requires identifier as destination");
+                    return false;
+                }
+
+                ensure_declared(destNode->id);
+                emit("INPUT %s", destNode->id);
+                return false;
+            }
+
+            if (strcmp(fname, "KEY") == 0) {
+                if(stmt->function_call.arg_count != 2){
+                    emit("; SEMANTIC ERROR: KEY expects 2 arguments (code, dest)");
+                    return false;
+                }
+                char *code = codegen_gen_expr(stmt->function_call.args[0]);
+                ASTNode *destNode = stmt->function_call.args[1];
+                if(destNode->kind != AST_IDENTIFIER){
+                    emit("; SEMANTIC ERROR: KEY destination must be identifier");
+                    free(code);
+                    return false;
+                }
+
+                ensure_declared(destNode->id);
+                emit("KEY %s %s", code, destNode->id);
+                free(code);
+                return false;
+            }
+
+            if (strcmp(fname, "PIXEL") == 0) {
+                if(stmt->function_call.arg_count != 3){
+                    emit("; SEMANTIC ERROR: PIXEL expects 3 arguments (x,y,color)");
+                    return false;
+                }
+                char *x = codegen_gen_expr(stmt->function_call.args[0]);
+                char *y = codegen_gen_expr(stmt->function_call.args[1]);
+                char *c = codegen_gen_expr(stmt->function_call.args[2]);
+                emit("PIXEL %s %s %s", x, y, c);
+                free(x); free(y); free(c);
+                return false;
+            }
+
             /* functions used as statements: generate call and discard RVAL */
             /* push params */
             for(int i=0;i<stmt->function_call.arg_count;i++){

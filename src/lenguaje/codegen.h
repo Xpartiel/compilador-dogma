@@ -17,6 +17,7 @@
 #define CODEGEN_H
 
 #include <stdio.h>
+#include <stdbool.h>
 #include "ast.h"
 
 /* Inicializa el generador y le pasa el FILE* donde escribir las instrucciones.
