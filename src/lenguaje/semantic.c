@@ -375,14 +375,21 @@ SType sem_infer_expr(ASTNode *expr){
             if( strcmp(op, "<")==0 ||
                 strcmp(op, ">")==0 ||
                 strcmp(op, "<=")==0 ||
-                strcmp(op, ">=")==0 ||
-                strcmp(op, "=")==0) {
+                strcmp(op, ">=")==0 ){
 
                 if( (L==S_TYPE_INT || L==S_TYPE_FLOAT) && ( R==S_TYPE_INT || R==S_TYPE_FLOAT) ){
                     return S_TYPE_BOOL;
                 }
                 sem_error("Operador comparacion '%s' requiere operandos numericos, encontrados (izq=%s, der=%s)", op, stype_to_string(L), stype_to_string(R));
                 return S_TYPE_ERROR;
+            }
+            if( strcmp(op, "=")==0 ){
+                if( L==S_TYPE_STRING && R==S_TYPE_STRING ){
+                    return S_TYPE_BOOL;
+                }
+                if( (L==S_TYPE_INT || L==S_TYPE_FLOAT) && ( R==S_TYPE_INT || R==S_TYPE_FLOAT) ){
+                    return S_TYPE_BOOL;
+                }
             }
 
             /* logicos */
