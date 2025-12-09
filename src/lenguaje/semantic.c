@@ -116,7 +116,7 @@ void sem_exit_scope(void){
     scope_top--;
 }
 
-/* add symbol to current scope; returns 0 on success, -1 if conflict */
+/* Afrefa un symbolo al scope actual, regresa 0 si lo logra, en cualquier otro caso regresa -1*/
 int sem_add_symbol(const char *name, SType type , Type *type_reference){
     
     /*Si el tope de la pila es menor a cero entonces 
@@ -291,6 +291,11 @@ static SType type_base_stype(Type *t){
     }
 }
 
+/*Funcion para reconocer funciones nativas de la FIS-25*/
+static int is_native(const char *name, const char *native){
+    return strcmp(name, native) == 0;
+}
+
 /* Declaraciones adelantadas para facilitar uso */
 SType sem_infer_expr(ASTNode *expr);
 void sem_check_statement(ASTNode *stmt);
@@ -316,7 +321,7 @@ SType sem_infer_expr(ASTNode *expr){
             if(!sym){
                 sem_error("Uso de variable no declarada '%s'", expr->id);
                 /* para seguir analizando retornamos float como fallback */
-                return S_TYPE_FLOAT;
+                return S_TYPE_ERROR;
             }
             if( sym->is_function ){
                 sem_error("Nombre de función '%s' usado sin llamada", expr->id);
@@ -370,14 +375,21 @@ SType sem_infer_expr(ASTNode *expr){
             if( strcmp(op, "<")==0 ||
                 strcmp(op, ">")==0 ||
                 strcmp(op, "<=")==0 ||
-                strcmp(op, ">=")==0 ||
-                strcmp(op, "=")==0) {
+                strcmp(op, ">=")==0 ){
 
                 if( (L==S_TYPE_INT || L==S_TYPE_FLOAT) && ( R==S_TYPE_INT || R==S_TYPE_FLOAT) ){
                     return S_TYPE_BOOL;
                 }
                 sem_error("Operador comparacion '%s' requiere operandos numericos, encontrados (izq=%s, der=%s)", op, stype_to_string(L), stype_to_string(R));
                 return S_TYPE_ERROR;
+            }
+            if( strcmp(op, "=")==0 ){
+                if( L==S_TYPE_STRING && R==S_TYPE_STRING ){
+                    return S_TYPE_BOOL;
+                }
+                if( (L==S_TYPE_INT || L==S_TYPE_FLOAT) && ( R==S_TYPE_INT || R==S_TYPE_FLOAT) ){
+                    return S_TYPE_BOOL;
+                }
             }
 
             /* logicos */
@@ -492,6 +504,87 @@ SType sem_infer_expr(ASTNode *expr){
             return S_TYPE_ERROR;
         }
         case AST_FUNCTION_CALL: {
+            /*Primero debemos revisar que la funcion llamada no sea alguna nativa de la FIS */
+            const char *fname = expr->function_call.name;
+            int argc = expr->function_call.arg_count;
+
+            /* PRINT(expr) para est funcion solo se imprime algo (se encarga la FIS), y luego aqui se devuelve VOID */
+            if (is_native(fname, "PRINT")) {
+                if (argc != 1)
+                    sem_error("PRINT espera 1 argumento, recibió %d", argc);
+                else {
+                    /*Aqui validamos que el argumento tenga un tipo válido (auqnue acepte cualquier tipo, es
+                    necesario hacer la validación)*/
+                    sem_infer_expr(expr->function_call.args[0]); 
+                }
+                return S_TYPE_VOID;
+            }
+
+            /* INPUT(dest) lee entrada y la guarda en la variable dest*/
+            if (is_native(fname, "INPUT")) {
+                if (argc != 1) {
+                    sem_error("INPUT espera un argumento");
+                    return S_TYPE_ERROR;
+                }
+
+                ASTNode *dest = expr->function_call.args[0];
+                if (dest->kind != AST_IDENTIFIER) {
+                    sem_error("INPUT requiere un identificador como destino");
+                    return S_TYPE_ERROR;
+                }
+
+                /*Declaracion implicita si no existe*/
+                if (!sem_lookup(dest->id)) {
+                    sem_add_symbol(dest->id, S_TYPE_STRING, NULL);
+                }
+
+                return S_TYPE_STRING; /*INPUT produce un string*/
+            }
+
+            /* KEY(code, dest) recibe un codigo numerico y guarda el estado en una variable dest (si esta pulsada o no)*/
+            if (is_native(fname, "KEY")) {
+                if (argc != 2) {
+                    sem_error("KEY espera 2 argumentos: KEY(code, dest)");
+                    return S_TYPE_ERROR;
+                }
+
+                SType ct = sem_infer_expr(expr->function_call.args[0]);
+                if (ct != S_TYPE_INT && ct != S_TYPE_FLOAT)
+                    sem_error("KEY: el código de tecla debe ser numérico");
+
+                ASTNode *dest = expr->function_call.args[1];
+                if (dest->kind != AST_IDENTIFIER) {
+                    sem_error("KEY: el segundo argumento debe ser un identificador destino");
+                } else if (!sem_lookup(dest->id)) {
+                    sem_add_symbol(dest->id, S_TYPE_INT, NULL);
+                }
+
+                return S_TYPE_INT;
+            }
+
+            /* PIXEL(x, y, c)  Recibe 3 valores numericos, los primeros 2 para las coordenadnas y el ultimo para saber
+            si se enciende el pixel o no, 0 = NO, 1 o mas= si*/
+            if (is_native(fname, "PIXEL")) {
+                if (argc != 3) {
+                    sem_error("PIXEL espera 3 argumentos: PIXEL(x, y, color)");
+                    return S_TYPE_ERROR;
+                }
+
+                SType tx = sem_infer_expr(expr->function_call.args[0]);
+                SType ty = sem_infer_expr(expr->function_call.args[1]);
+                SType tc = sem_infer_expr(expr->function_call.args[2]);
+
+                if (!(tx == S_TYPE_INT || tx == S_TYPE_FLOAT))
+                    sem_error("PIXEL: x debe ser numérico");
+                if (!(ty == S_TYPE_INT || ty == S_TYPE_FLOAT))
+                    sem_error("PIXEL: y debe ser numérico");
+                if (!(tc == S_TYPE_INT || tc == S_TYPE_FLOAT))
+                    sem_error("PIXEL: color debe ser numérico");
+
+                return S_TYPE_VOID;
+            }
+
+            /*Si no es una funcion nativa de la FIS entonces buscamos su declaracion*/
             Symbol *f = sem_lookup(expr->function_call.name);
             if( !f || !f->is_function ){
                 sem_error("Funcion '%s' no declarada", expr->function_call.name);
@@ -508,7 +601,6 @@ SType sem_infer_expr(ASTNode *expr){
                 SType actual = sem_infer_expr(expr->function_call.args[i]);
 
                 if(expected == S_TYPE_ARRAY || expected == S_TYPE_LIST) {
-                    /* expected is composite: check if arg is init-list and elements compatible */
                     ASTNode *arg = expr->function_call.args[i];
                     if(arg->kind == AST_INIT_LIST){
                         SType elem_t = sem_infer_expr(arg);
@@ -553,8 +645,6 @@ void sem_check_statement(ASTNode *stmt){
             if( sem_add_symbol(name, st, type_reference) != 0 ){
                 sem_error("Variable '%s' ya declarada en este scope", name);
             }
-
-            
 
             /* inicializador */
             ASTNode *init = stmt->declaration.init;

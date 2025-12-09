@@ -17,6 +17,7 @@
 #define CODEGEN_H
 
 #include <stdio.h>
+#include <stdbool.h>
 #include "ast.h"
 
 /* Inicializa el generador y le pasa el FILE* donde escribir las instrucciones.
@@ -34,8 +35,8 @@ void codegen_finish(void);
  *   con el nombre (variable literal o temporal) que contiene el resultado.
  *   El llamador debe free() la cadena retornada cuando corresponda.
  */
-void codegen_gen_sequence(ASTNode *seq);
-void codegen_gen_statement(ASTNode *stmt);
+bool codegen_gen_statement(ASTNode *stmt);
+bool codegen_gen_sequence(ASTNode *seq);
 char *codegen_gen_expr(ASTNode *expr);
 
 /* utilidades (opcionales) */
