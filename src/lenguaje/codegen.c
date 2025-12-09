@@ -125,7 +125,7 @@ char *codegen_new_label(void){
     return strdup(buf);
 }
 
-/* ----- loop stack helper procedures ----- */
+/* ----- Procedimientos para pilas de loop  ----- */
 static void loop_push( const char *label_break , const char *label_continue ){
     LoopContext *c = malloc( sizeof(LoopContext) );
     c->label_break = strdup( label_break );
@@ -176,12 +176,11 @@ static const char* binop_to_instr(const char *op){
     if(strcmp(op,"-")==0) return "SUB";
     if(strcmp(op,"*")==0) return "MUL";
     if(strcmp(op,"/")==0) return "DIV";
-    if(strcmp(op,"=")==0) return "EQ";  /* igualdad en tu AST se representaba "=" */
+    if(strcmp(op,"=")==0) return "EQ";
     if(strcmp(op,"<")==0) return "LT";
     if(strcmp(op,">")==0) return "GT";
     if(strcmp(op,"<=")==0) return "LTE";
     if(strcmp(op,">=")==0) return "GTE";
-    /* && and || se implementan como patrones (no mapeo directo) */
     return NULL;
 }
 
@@ -447,13 +446,13 @@ bool codegen_gen_statement(ASTNode *stmt){
             emit("IFFALSE %s GOTO %s", cond, L_else);
             free(cond);
 
-            /* then branch */
+            /* rama then */
             bool thenReturned=codegen_gen_statement(stmt->conditional.if_branch);
             if(!thenReturned) emit("GOTO %s", L_end);
             emit("LABEL %s", L_else);
 
             bool allElifsReturn = true;
-            /* elif chain: cada nodo chained_conditional contiene condition & branch & next */
+            /* elif chain: cada nodo chained_conditional contiene condition, branch y next */
             ASTNode *eif = stmt->conditional.elif_list;
             while(eif){
                 /* eif: cadena de condicionales para else if seguidos */
@@ -527,13 +526,13 @@ bool codegen_gen_statement(ASTNode *stmt){
         }
 
         case AST_RETURN: {
-            /* if has value, compute it and assign to RVAL, then RETURN */
+            /* If con valor a computar y retornar  */
             if(stmt->result.value){
                 char *r = codegen_gen_expr(stmt->result.value);
                 emit("ASSIGN %s RVAL", r);
                 free(r);
             } else {
-                /* no value: set RVAL to 0 by default */
+                /* Si no hay valor, RVAL se hace 0 por defecto */
                 emit("ASSIGN 0 RVAL");
             }
             emit("RETURN");
@@ -541,11 +540,11 @@ bool codegen_gen_statement(ASTNode *stmt){
         }
 
         case AST_FUNCTION_DECL: {
-            /* function label */
+            /* etiqueta de funcion */
             const char *fname = stmt->function_declaration.name;
             emit("LABEL %s", fname);
 
-            /* declare parameters as variables and retrieve them with PARAM_GET */
+            /* parametros de declaracion vistos como variable, obtenerlas con PARAM_GET */
             int pcount = stmt->function_declaration.param_count;
             ASTNode **params = stmt->function_declaration.params;
             for(int i=0;i<pcount;i++){
@@ -556,11 +555,11 @@ bool codegen_gen_statement(ASTNode *stmt){
                 emit("PARAM_GET %d %s", i, pname);
             }
 
-            /* generate function body */
+            /* generar body */
             bool returned= codegen_gen_statement(stmt->function_declaration.body);
 
-            /* if execution reaches end of function without RETURN, ensure RETURN */
-            /* ensure RVAL exists (maybe set to 0) */
+            /* asegurar retorno aun en ausencia de RETURN */
+            /* asegurar existencia de RVAL*/
             if(!returned){
                 emit("ASSIGN 0 RVAL");
                 emit("RETURN");
@@ -631,7 +630,7 @@ bool codegen_gen_statement(ASTNode *stmt){
                 return false;
             }
 
-            /* functions used as statements: generate call and discard RVAL */
+            /* Funcion tomada como statement: genera llamada y descarta RVAL */
             /* push params */
             for(int i=0;i<stmt->function_call.arg_count;i++){
                 char *a = codegen_gen_expr(stmt->function_call.args[i]);
@@ -639,7 +638,6 @@ bool codegen_gen_statement(ASTNode *stmt){
                 free(a);
             }
             emit("GOSUB %s", stmt->function_call.name);
-            /* optionally discard RVAL or ignore */
             return false;
         }
         default:
