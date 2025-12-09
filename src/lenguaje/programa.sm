@@ -1,2 +1,244 @@
-# x <- 0;
-<< x <- x + 1; >>;
+# cx;
+# y;
+# k;
+# j;
+
+PRINT( "Ingresa un caracter para el letrero:" );
+# msg;
+INPUT( msg );
+PRINT( "CARACTER RECONOCIDO:");
+PRINT(msg);
+
+PRINT("INICIO CICLO MAXIMO");
+<<
+    y <- 0 ;
+    PRINT("INICIO LIMPIEZA");
+    <<  (63 < y) ? { !! ; };
+        j <- 0 ;
+        <<  (63 < j) ? { !! ; };
+            PIXEL( j , y , 0 );
+            j <- j + 1 ;
+        >>;
+        y <- y + 1 ;
+    >>;
+    PRINT("FIN LIMPIEZA");
+
+    k <- 0 ;
+    KEY( 2 , k );
+    ( k = 1 ) ? { cx <- cx - 1; };
+
+    k <- 0 ;
+    KEY( 3 , k );
+    ( k = 1 ) ? {cx <- cx + 1; };
+
+    ( msg = 0 ) ? {
+
+        PIXEL( cx , 32 , 1 );
+        PIXEL( cx + 1 , 32 , 1 );
+        PIXEL( cx + 2 , 32 , 1 );
+
+        PIXEL( cx , 32 + 1 , 1 );
+        PIXEL( cx + 2 , 32 + 1 , 1 );
+
+        PIXEL( cx , 32 + 2 , 1 );
+        PIXEL( cx + 2 , 32 + 2 , 1 );
+
+        PIXEL( cx , 32 + 3 , 1 );
+        PIXEL( cx + 2 , 32 + 3 , 1 );
+
+        PIXEL( cx , 32 + 4 , 1 );
+        PIXEL( cx + 1 , 32 + 4 , 1 );
+        PIXEL( cx + 2 , 32 + 4 , 1 );
+    
+    } :| ( msg = 1 ) ? {
+
+        PIXEL( cx + 1 , 32 , 1 );
+        PIXEL( cx , 32 , 1 );
+
+        PIXEL( cx + 1 , 32 + 1 , 1 );
+        PIXEL( cx + 1 , 32 + 2 , 1 );
+        PIXEL( cx + 1 , 32 + 3 , 1 );
+
+        PIXEL( cx , 32 + 4 , 1 );
+        PIXEL( cx + 1 , 32 + 4 , 1 );
+        PIXEL( cx + 2 , 32 + 4 , 1 );
+    
+    } :| ( msg = 2 ) ? {
+
+        PIXEL( cx , 32 , 1 );
+        PIXEL( cx + 1 , 32 , 1 );
+        PIXEL( cx + 2 , 32 , 1 );
+
+        PIXEL( cx + 2 , 32 + 1 , 1 );
+
+        PIXEL( cx , 32 + 2 , 1 );
+        PIXEL( cx + 1 , 32 + 2 , 1 );
+        PIXEL( cx + 2 , 32 + 2 , 1 );
+
+        PIXEL( cx , 32 + 3 , 1 );
+
+        PIXEL( cx , 32 + 4 , 1 );
+        PIXEL( cx + 1 , 32 + 4 , 1 );
+        PIXEL( cx + 2 , 32 + 4 , 1 );
+
+    } :| ( msg = 3 ) ? {
+
+        PIXEL( cx , 32 , 1 );
+        PIXEL( cx + 1 , 32 , 1 );
+        PIXEL( cx + 2 , 32 , 1 );
+
+        PIXEL( cx + 2 , 32 + 1 , 1 );
+
+        PIXEL( cx , 32 + 2 , 1 );
+        PIXEL( cx + 1 , 32 + 2 , 1 );
+        PIXEL( cx + 2 , 32 + 2 , 1 );
+
+        PIXEL( cx + 2 , 32 + 3 , 1 );
+
+        PIXEL( cx , 32 + 4 , 1 );
+        PIXEL( cx + 1 , 32 + 4 , 1 );
+        PIXEL( cx + 2 , 32 + 4 , 1 );
+
+    } :| ( msg = 4 ) ? {
+
+        PIXEL( cx , 32 , 1 );
+        PIXEL( cx + 2 , 32 , 1 );
+
+        PIXEL( cx , 32 + 1 , 1 );
+        PIXEL( cx + 2 , 32 + 1 , 1 );
+
+        PIXEL( cx , 32 + 2 , 1 );
+        PIXEL( cx + 1 , 32 + 2 , 1 );
+        PIXEL( cx + 2 , 32 + 2 , 1 );
+
+        PIXEL( cx + 2 , 32 + 3 , 1 );
+
+        PIXEL( cx + 2 , 32 + 4 , 1 );
+
+    } :| ( msg = 5 ) ? {
+
+        PIXEL( cx , 32 , 1 );
+        PIXEL( cx + 1 , 32 , 1 );
+        PIXEL( cx + 2 , 32 , 1 );
+
+        PIXEL( cx , 32 + 1 , 1 );
+
+        PIXEL( cx , 32 + 2 , 1 );
+        PIXEL( cx + 1 , 32 + 2 , 1 );
+        PIXEL( cx + 2 , 32 + 2 , 1 );
+
+        PIXEL( cx + 2 , 32 + 3 , 1 );
+
+        PIXEL( cx , 32 + 4 , 1 );
+        PIXEL( cx + 1 , 32 + 4 , 1 );
+        PIXEL( cx + 2 , 32 + 4 , 1 );
+
+    } :| ( msg = 6 ) ? {
+
+        PIXEL( cx , 32 , 1 );
+        PIXEL( cx + 1 , 32 , 1 );
+        PIXEL( cx + 2 , 32 , 1 );
+
+        PIXEL( cx , 32 + 1 , 1 );
+
+        PIXEL( cx , 32 + 2 , 1 );
+        PIXEL( cx + 1 , 32 + 2 , 1 );
+        PIXEL( cx + 2 , 32 + 2 , 1 );
+
+        PIXEL( cx , 32 + 3 , 1 );
+        PIXEL( cx + 2 , 32 + 3 , 1 );
+
+        PIXEL( cx , 32 + 4 , 1 );
+        PIXEL( cx + 1 , 32 + 4 , 1 );
+        PIXEL( cx + 2 , 32 + 4 , 1 );
+
+    } :| ( msg = 7 ) ? {
+
+        PIXEL( cx , 32 , 1 );
+        PIXEL( cx + 1 , 32 , 1 );
+        PIXEL( cx + 2 , 32 , 1 );
+
+        PIXEL( cx + 2 , 32 + 1 , 1 );
+        PIXEL( cx + 2 , 32 + 2 , 1 );
+        PIXEL( cx + 2 , 32 + 3 , 1 );
+        PIXEL( cx + 2 , 32 + 4 , 1 );
+
+    } :| ( msg = 8 ) ? {
+
+        PIXEL( cx , 32 , 1 );
+        PIXEL( cx + 1 , 32 , 1 );
+        PIXEL( cx + 2 , 32 , 1 );
+
+        PIXEL( cx , 32 + 1 , 1 );
+        PIXEL( cx + 2 , 32 + 1 , 1 );
+
+        PIXEL( cx , 32 + 2 , 1 );
+        PIXEL( cx + 1 , 32 + 2 , 1 );
+        PIXEL( cx + 2 , 32 + 2 , 1 );
+
+        PIXEL( cx , 32 + 3 , 1 );
+        PIXEL( cx + 2 , 32 + 3 , 1 );
+
+        PIXEL( cx , 32 + 4 , 1 );
+        PIXEL( cx + 1 , 32 + 4 , 1 );
+        PIXEL( cx + 2 , 32 + 4 , 1 );
+
+    } :| ( msg = 9 ) ? {
+
+        PIXEL( cx , 32 , 1 );
+        PIXEL( cx + 1 , 32 , 1 );
+        PIXEL( cx + 2 , 32 , 1 );
+
+        PIXEL( cx , 32 + 1 , 1 );
+        PIXEL( cx + 2 , 32 + 1 , 1 );
+
+        PIXEL( cx , 32 + 2 , 1 );
+        PIXEL( cx + 1 , 32 + 2 , 1 );
+        PIXEL( cx + 2 , 32 + 2 , 1 );
+
+        PIXEL( cx + 2 , 32 + 3 , 1 );
+
+        PIXEL( cx , 32 + 4 , 1 );
+        PIXEL( cx + 1 , 32 + 4 , 1 );
+        PIXEL( cx + 2 , 32 + 4 , 1 );
+
+    } :| ( msg = 10 ) ? {
+
+        PIXEL( cx + 1 , 32 - 1 , 1 );
+        PIXEL( cx + 1 , 32 , 1 );
+        PIXEL( cx + 1 , 32 + 1 , 1 );
+        PIXEL( cx + 1 , 32 + 2 , 1 );
+        PIXEL( cx + 1 , 32 + 3 , 1 );
+        PIXEL( cx + 1 , 32 + 4 , 1 );
+        PIXEL( cx + 1 , 32 + 5 , 1 );
+
+        PIXEL( cx , 32 , 1 );
+        PIXEL( cx + 1 , 32 , 1 );
+        PIXEL( cx + 2 , 32 , 1 );
+
+        PIXEL( cx , 32 + 1 , 1 );
+
+        PIXEL( cx , 32 + 2 , 1 );
+        PIXEL( cx + 1 , 32 + 2 , 1 );
+        PIXEL( cx + 2 , 32 + 2 , 1 );
+
+        PIXEL( cx + 2 , 32 + 3 , 1 );
+
+        PIXEL( cx , 32 + 4 , 1 );
+        PIXEL( cx + 1 , 32 + 4 , 1 );
+        PIXEL( cx + 2 , 32 + 4 , 1 );
+        
+    } : {
+
+        PRINT("ENTRA ELSE");
+
+        PIXEL( cx , 32 , 1 );
+        PIXEL( cx + 1 , 32 , 1 );
+        PIXEL( cx , 32 +1 , 1 );
+        PIXEL( cx + 1, 32 +1 , 1 );
+
+    };
+
+>>;
+
+
